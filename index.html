@@ -417,13 +417,15 @@ surprised_eye: [224, 96, 32, 32]
         const initTee = (teeContainer) => {
             let colorBody = teeContainer.dataset.colorBody;
             let colorFeet = teeContainer.dataset.colorFeet;
+
+            let skinUrl = teeContainer.dataset.skin;
             let skinBitmap = null;
             let offscreen = null;
             let offscreenContext = null;
+            let loadSkinPromise = null;
 
-            const skinUrl = teeContainer.dataset.skin;
             const tee = {};
-            const updateTeeColor = () => {
+            const updateTeeImage = () => {
                 if (offscreen === null) {
                     offscreen = new OffscreenCanvas(skinBitmap.width, skinBitmap.height);
                     offscreenContext = offscreen.getContext('2d', {
@@ -477,11 +479,35 @@ surprised_eye: [224, 96, 32, 32]
                 });
             };
 
-            const debounceUpdateColor = debounce(updateTeeColor, 10);
+            const updateSkin = (url) => {
+                loadImage(url).then(async (elImage) => {
+                    skinBitmap = await createImageBitmap(elImage);
+                    skinUrl = url;
+
+                    if (tee.useCustomColor) {
+                        updateTeeImage(tee);
+                    } else {
+                        setTeeSkinValue(tee, `url('${elImage.src}')`);
+                    }
+                });
+            }
+
+            const debounceUpdateTeeImage = debounce(updateTeeImage, 10);
 
             teeContainer.tee = tee;
 
             Object.defineProperty(tee, 'container', { value: teeContainer });
+            Object.defineProperty(tee, 'skinUrl', {
+                get() {
+                    return skinUrl;
+                },
+                set(value) {
+                    skinUrl = parseInt(value);
+                    teeContainer.dataset.skin = value;
+                    debounceUpdateTeeImage();
+                },
+            });
+
             Object.defineProperty(tee, 'colorBody', {
                 get() {
                     return colorBody;
@@ -489,7 +515,7 @@ surprised_eye: [224, 96, 32, 32]
                 set(value) {
                     colorBody = parseInt(value);
                     teeContainer.dataset.colorBody = colorBody + '';
-                    debounceUpdateColor(this);
+                    debounceUpdateTeeImage();
                 },
             });
 
@@ -512,7 +538,7 @@ surprised_eye: [224, 96, 32, 32]
                 set(value) {
                     colorFeet = parseInt(value);
                     teeContainer.dataset.colorFeet = colorFeet + '';
-                    debounceUpdateColor(this);
+                    debounceUpdateTeeImage();
                 },
             });
 
@@ -545,7 +571,7 @@ surprised_eye: [224, 96, 32, 32]
                 skinBitmap = await createImageBitmap(elImage);
 
                 if (tee.useCustomColor) {
-                    updateTeeColor(tee);
+                    updateTeeImage(tee);
                 } else {
                     setTeeSkinValue(tee, `url('${elImage.src}')`);
                 }
