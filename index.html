@@ -16,6 +16,7 @@
             position: relative;
             content-visibility: auto;
             contain-intrinsic-size: 96em;
+            display: inline-block;
         }
 
         /*      */
@@ -34,6 +35,9 @@
             left: 50%;
             position: absolute;
             transform: translate(-50%, calc(-50% - 6em));
+
+            -webkit-transition: background-image 500ms ease-in-out;
+            transition: background-image 500ms ease-in-out;
         }
 
         .tee::before {
@@ -47,7 +51,7 @@
         }
 
         /*      */
-        /* FOOT */
+        /* FEET */
         /*      */
 
         .tee__foot {
@@ -59,6 +63,9 @@
             background-image: var(--skin);
             background-size: 256em 128em;
             background-position: -192em -32em;
+
+            -webkit-transition: background-image 200ms ease-in-out;
+            transition: background-image 200ms ease-in-out;
         }
 
         .tee__foot_outline {
@@ -150,8 +157,105 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-color="5498880"
         data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
     >
     </div>
 
@@ -231,53 +335,13 @@ surprised_eye: [224, 96, 32, 32]
             teeContainer.style.setProperty('--skin', value);
         };
 
-        const initTee = (teeContainer) => {
-            const skinUrl = teeContainer.dataset.skin;
-            const isCustomColors = teeContainer.dataset.color !== undefined;
+        const markTeeAsInitialized = (tee) => {
+            tee.container.classList.add('tee_initialized');
+        };
 
-            loadImage(skinUrl).then((elImage) => {
-                if (isCustomColors) {
-                    elImage.decode().then(() => {
-                        const color = parseInt(teeContainer.dataset.color);
-                        const colorRgba = convertHslToRgba(convertTeeColorToHSL(color));
-
-                        const offscreen = new OffscreenCanvas(elImage.naturalWidth, elImage.naturalHeight);
-                        const offscreenContext = offscreen.getContext('2d', {
-                            willReadFrequently: true,
-                        });
-
-                        offscreenContext.drawImage(elImage, 0, 0);
-
-                        debugger;
-                        const imageData = offscreenContext.getImageData(0, 0, offscreen.width, offscreen.height)
-                        const array = imageData.data;
-
-                        for (let index = 0; index < array.length; index += 4) {
-                            const greyscale = (array[index] + array[index + 1] + array[index + 2]) / 3;
-
-                            // r
-                            array[index]     = (greyscale * colorRgba[0]) / 255;
-                            // g
-                            array[index + 1] = (greyscale * colorRgba[1]) / 255;
-                            // b
-                            array[index + 2] = (greyscale * colorRgba[2]) / 255;
-                            // a
-                            array[index + 3] = (array[index + 3] * colorRgba[3]) / 255;
-                        }
-
-                        offscreenContext.putImageData(imageData, 0, 0);
-                        offscreen.convertToBlob().then((blob) => {
-                            const url = URL.createObjectURL(blob);
-                            setTeeContainerSkinValue(teeContainer, `url('${url}')`);
-                        });
-                    });
-                } else {
-                    setTeeContainerSkinValue(teeContainer, `url('${elImage.src}')`);
-                }
-            });
-
-            // teeContainer.classList.add('tee_initialized');
-            console.log(teeContainer);
+        const createTeeDOM = (tee) => {
+            const container = tee.container;
+            console.log(container);
 
             const footLeftOutline = document.createElement('div');
             const footLeft = document.createElement('div');
@@ -299,10 +363,138 @@ surprised_eye: [224, 96, 32, 32]
             footRight.classList.add('tee__foot');
             footRight.classList.add('tee__foot_right');
 
-            teeContainer.appendChild(footLeftOutline);
-            teeContainer.appendChild(footLeft);
-            teeContainer.appendChild(footRightOutline);
-            teeContainer.appendChild(footRight);
+            container.appendChild(footLeftOutline);
+            container.appendChild(footLeft);
+            container.appendChild(footRightOutline);
+            container.appendChild(footRight);
+
+            return tee;
+        };
+
+        const initTee = (teeContainer) => {
+            let colorBody = teeContainer.dataset.colorBody;
+            let colorFeet = teeContainer.dataset.colorFeet;
+            let skinBitmap = null;
+
+            const skinUrl = teeContainer.dataset.skin;
+            const tee = {};
+
+            teeContainer.tee = tee;
+
+            Object.defineProperty(tee, 'container', { value: teeContainer });
+            Object.defineProperty(tee, 'colorBody', {
+                get() {
+                    return colorBody;
+                },
+                set(value) {
+                    return colorBody = value;
+                },
+            });
+
+            Object.defineProperty(tee, 'colorBodyHsl', {
+                get() {
+                    return convertTeeColorToHSL(parseInt(tee.colorBody));
+                },
+            });
+
+            Object.defineProperty(tee, 'colorBodyRgba', {
+                get() {
+                    return convertHslToRgba(tee.colorBodyHsl);
+                },
+            });
+
+            Object.defineProperty(tee, 'colorFeet', {
+                get() {
+                    return colorFeet;
+                },
+                set(value) {
+                    return colorFeet = value;
+                },
+            });
+
+            Object.defineProperty(tee, 'colorFeetHsl', {
+                get() {
+                    return convertTeeColorToHSL(parseInt(tee.colorFeet));
+                },
+            });
+
+            Object.defineProperty(tee, 'colorFeetRgba', {
+                get() {
+                    return convertHslToRgba(tee.colorFeetHsl);
+                },
+            });
+
+            Object.defineProperty(tee, 'useCustomColor', {
+                get() {
+                    return colorBody !== undefined
+                        || colorFeet !== undefined;
+                },
+            });
+
+            Object.defineProperty(tee, 'skinBitmap', {
+                get() {
+                    return skinBitmap;
+                },
+            });
+
+            loadImage(skinUrl).then(async (elImage) => {
+                skinBitmap = await createImageBitmap(elImage);
+
+                if (tee.useCustomColor) {
+                    const colorBodyRgba = tee.colorBodyRgba;
+                    const colorFeetRgba = tee.colorFeetRgba;
+
+                    const offscreen = new OffscreenCanvas(skinBitmap.width, skinBitmap.height);
+                    const offscreenContext = offscreen.getContext('2d', {
+                        willReadFrequently: true,
+                    });
+
+                    offscreenContext.drawImage(skinBitmap, 0, 0);
+
+                    const imageData = offscreenContext.getImageData(0, 0, offscreen.width, offscreen.height)
+                    const array = imageData.data;
+
+                    const footCoordXStart = offscreen.width * (6 / 8);
+                    const footCoordXEnd = offscreen.width * (8 / 8);
+                    const footCoordYStart = offscreen.height * (1 / 4);
+                    const footCoordYEnd = offscreen.height * (3 / 4);
+
+                    for (let index = 0; index < array.length; index += 4) {
+                        const x = (index / 4) % offscreen.width;
+                        const y = Math.floor((index / 4) / offscreen.width);
+
+                        const greyscale = (array[index] + array[index + 1] + array[index + 2]) / 3;
+                        const color =
+                            x >= footCoordXStart
+                            && x <= footCoordXEnd
+                            && y >= footCoordYStart
+                            && y <= footCoordYEnd
+                                ? colorFeetRgba
+                                : colorBodyRgba;
+
+                        // r
+                        array[index]     = (greyscale * color[0]) / 255;
+                        // g
+                        array[index + 1] = (greyscale * color[1]) / 255;
+                        // b
+                        array[index + 2] = (greyscale * color[2]) / 255;
+                        // a
+                        array[index + 3] = (array[index + 3] * color[3]) / 255;
+                    }
+
+                    offscreenContext.putImageData(imageData, 0, 0);
+                    offscreen.convertToBlob().then((blob) => {
+                        const url = URL.createObjectURL(blob);
+                        setTeeContainerSkinValue(teeContainer, `url('${url}')`);
+                    });
+                } else {
+                    setTeeContainerSkinValue(teeContainer, `url('${elImage.src}')`);
+                }
+            });
+
+            createTeeDOM(tee);
+
+            return tee;
         };
 
         const init = () => {
