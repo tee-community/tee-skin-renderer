@@ -157,7 +157,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/nanami_glow.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -165,7 +165,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/cool_glownanami.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -173,7 +173,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/brownbear.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -181,7 +181,47 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/zombie1.png"
+        data-color-body="12386048"
+        data-color-feet="8060707"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/glowfox.png"
+        data-color-body="11388573"
+        data-color-feet="11354189"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/ice%20cat.png"
+        data-color-body="0"
+        data-color-feet="0"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/nanami.png"
+        data-color-body="8061161"
+        data-color-feet="1769472"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/oldschool.png"
+        data-color-body="5570815"
+        data-color-feet="8157812"
+    >
+    </div>
+
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/FalFy_glow.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -189,7 +229,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/coala_cammostripes.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -197,7 +237,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/mermydon.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -205,7 +245,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/Osu.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -213,7 +253,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/Littleblack.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -221,7 +261,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/jeet.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -229,7 +269,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/birdball.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -237,7 +277,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/WolfTee.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -245,21 +285,24 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
-        data-color-body="5498880"
-        data-color-feet="3079936"
-    >
-    </div>
-
-    <div
-        class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-skin="https://skins.scrumplex.net/skin/bomb.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
     </div>
 
     <script>
+        const debounce = (func, delayMs) => {
+            let timer;
+
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    func(...args);
+                }, delayMs);
+            };
+        };
+
         const convertTeeColorToHSL = (value) => ([
             (((value >> 16) & 0xff) * 360) / 0xff,
             (((value >> 8) & 0xff) * 100) / 0xff,
@@ -331,8 +374,8 @@ surprised_eye: [224, 96, 32, 32]
             });
         };
 
-        const setTeeContainerSkinValue = (teeContainer, value) => {
-            teeContainer.style.setProperty('--skin', value);
+        const setTeeSkinValue = (tee, value) => {
+            tee.container.style.setProperty('--skin', value);
         };
 
         const markTeeAsInitialized = (tee) => {
@@ -375,9 +418,66 @@ surprised_eye: [224, 96, 32, 32]
             let colorBody = teeContainer.dataset.colorBody;
             let colorFeet = teeContainer.dataset.colorFeet;
             let skinBitmap = null;
+            let offscreen = null;
+            let offscreenContext = null;
 
             const skinUrl = teeContainer.dataset.skin;
             const tee = {};
+            const updateTeeColor = () => {
+                if (offscreen === null) {
+                    offscreen = new OffscreenCanvas(skinBitmap.width, skinBitmap.height);
+                    offscreenContext = offscreen.getContext('2d', {
+                        willReadFrequently: true,
+                    });
+                } else {
+
+                    offscreenContext.clearRect(0, 0, offscreen.width, offscreen.height);
+                }
+
+                const colorBodyRgba = convertHslToRgba(convertTeeColorToHSL(colorBody));
+                const colorFeetRgba = convertHslToRgba(convertTeeColorToHSL(colorFeet));
+
+                offscreenContext.drawImage(skinBitmap, 0, 0);
+
+                const imageData = offscreenContext.getImageData(0, 0, offscreen.width, offscreen.height);
+                const array = imageData.data;
+
+                const footCoordXStart = offscreen.width * (6 / 8);
+                const footCoordXEnd = offscreen.width * (8 / 8);
+                const footCoordYStart = offscreen.height * (1 / 4);
+                const footCoordYEnd = offscreen.height * (3 / 4);
+
+                for (let index = 0; index < array.length; index += 4) {
+                    const x = (index / 4) % offscreen.width;
+                    const y = Math.floor((index / 4) / offscreen.width);
+
+                    const greyscale = (array[index] + array[index + 1] + array[index + 2]) / 3;
+                    const color =
+                        x >= footCoordXStart
+                        && x <= footCoordXEnd
+                        && y >= footCoordYStart
+                        && y <= footCoordYEnd
+                            ? colorFeetRgba
+                            : colorBodyRgba;
+
+                    // r
+                    array[index]     = (greyscale * color[0]) / 255;
+                    // g
+                    array[index + 1] = (greyscale * color[1]) / 255;
+                    // b
+                    array[index + 2] = (greyscale * color[2]) / 255;
+                    // a
+                    array[index + 3] = (array[index + 3] * color[3]) / 255;
+                }
+
+                offscreenContext.putImageData(imageData, 0, 0);
+                offscreen.convertToBlob().then((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    setTeeSkinValue(tee, `url('${url}')`);
+                });
+            };
+
+            const debounceUpdateColor = debounce(updateTeeColor, 10);
 
             teeContainer.tee = tee;
 
@@ -387,7 +487,9 @@ surprised_eye: [224, 96, 32, 32]
                     return colorBody;
                 },
                 set(value) {
-                    return colorBody = value;
+                    colorBody = parseInt(value);
+                    teeContainer.dataset.colorBody = colorBody + '';
+                    debounceUpdateColor(this);
                 },
             });
 
@@ -408,7 +510,9 @@ surprised_eye: [224, 96, 32, 32]
                     return colorFeet;
                 },
                 set(value) {
-                    return colorFeet = value;
+                    colorFeet = parseInt(value);
+                    teeContainer.dataset.colorFeet = colorFeet + '';
+                    debounceUpdateColor(this);
                 },
             });
 
@@ -441,54 +545,9 @@ surprised_eye: [224, 96, 32, 32]
                 skinBitmap = await createImageBitmap(elImage);
 
                 if (tee.useCustomColor) {
-                    const colorBodyRgba = tee.colorBodyRgba;
-                    const colorFeetRgba = tee.colorFeetRgba;
-
-                    const offscreen = new OffscreenCanvas(skinBitmap.width, skinBitmap.height);
-                    const offscreenContext = offscreen.getContext('2d', {
-                        willReadFrequently: true,
-                    });
-
-                    offscreenContext.drawImage(skinBitmap, 0, 0);
-
-                    const imageData = offscreenContext.getImageData(0, 0, offscreen.width, offscreen.height)
-                    const array = imageData.data;
-
-                    const footCoordXStart = offscreen.width * (6 / 8);
-                    const footCoordXEnd = offscreen.width * (8 / 8);
-                    const footCoordYStart = offscreen.height * (1 / 4);
-                    const footCoordYEnd = offscreen.height * (3 / 4);
-
-                    for (let index = 0; index < array.length; index += 4) {
-                        const x = (index / 4) % offscreen.width;
-                        const y = Math.floor((index / 4) / offscreen.width);
-
-                        const greyscale = (array[index] + array[index + 1] + array[index + 2]) / 3;
-                        const color =
-                            x >= footCoordXStart
-                            && x <= footCoordXEnd
-                            && y >= footCoordYStart
-                            && y <= footCoordYEnd
-                                ? colorFeetRgba
-                                : colorBodyRgba;
-
-                        // r
-                        array[index]     = (greyscale * color[0]) / 255;
-                        // g
-                        array[index + 1] = (greyscale * color[1]) / 255;
-                        // b
-                        array[index + 2] = (greyscale * color[2]) / 255;
-                        // a
-                        array[index + 3] = (array[index + 3] * color[3]) / 255;
-                    }
-
-                    offscreenContext.putImageData(imageData, 0, 0);
-                    offscreen.convertToBlob().then((blob) => {
-                        const url = URL.createObjectURL(blob);
-                        setTeeContainerSkinValue(teeContainer, `url('${url}')`);
-                    });
+                    updateTeeColor(tee);
                 } else {
-                    setTeeContainerSkinValue(teeContainer, `url('${elImage.src}')`);
+                    setTeeSkinValue(tee, `url('${elImage.src}')`);
                 }
             });
 
@@ -498,10 +557,17 @@ surprised_eye: [224, 96, 32, 32]
         };
 
         const init = () => {
+            const randomInteger = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
             document
                 .querySelectorAll('.tee')
-                .forEach((teeContainer) => {
-                    initTee(teeContainer);
+                .forEach((teeContainer, index) => {
+                    const tee = initTee(teeContainer);
+
+                    setInterval(() => {
+                        tee.colorBody = randomInteger(0, 0xffffff - 1);
+                        tee.colorFeet = randomInteger(0, 0xffffff - 1);
+                    }, 1000);
                 });
         };
 
