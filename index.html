@@ -432,7 +432,15 @@ surprised_eye: [224, 96, 32, 32]
                         willReadFrequently: true,
                     });
                 } else {
+                    if (offscreen.width !== skinBitmap.width
+                        || offscreen.height !== skinBitmap.height
+                    ) {
+                        offscreen.width = skinBitmap.width;
+                        offscreen.height = skinBitmap.height;
+                    }
 
+                    offscreen.height; // 256
+                    offscreen.height = 512;
                     offscreenContext.clearRect(0, 0, offscreen.width, offscreen.height);
                 }
 
