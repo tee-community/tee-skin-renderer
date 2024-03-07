@@ -285,7 +285,7 @@ surprised_eye: [224, 96, 32, 32]
 
     <div
         class="tee"
-        data-skin="https://skins.scrumplex.net/skin/bomb.png"
+        data-skin="https://skins.zillyhuhn.com/skin/uhd/greensward.png"
         data-color-body="5498880"
         data-color-feet="3079936"
     >
@@ -420,12 +420,20 @@ surprised_eye: [224, 96, 32, 32]
 
             let skinUrl = teeContainer.dataset.skin;
             let skinBitmap = null;
+            let skinLoading = false;
+            let skinLoadedCallback = null;
+
             let offscreen = null;
             let offscreenContext = null;
             let loadSkinPromise = null;
+            let loadSkinCallback = null;
 
             const tee = {};
             const updateTeeImage = () => {
+                if (skinBitmap === null) {
+                    return;
+                }
+
                 if (offscreen === null) {
                     offscreen = new OffscreenCanvas(skinBitmap.width, skinBitmap.height);
                     offscreenContext = offscreen.getContext('2d', {
@@ -485,20 +493,34 @@ surprised_eye: [224, 96, 32, 32]
                 });
             };
 
+            const debounceUpdateTeeImage = debounce(updateTeeImage, 10);
             const updateSkin = (url) => {
+                if (skinLoading) {
+                    skinLoadedCallback = () => updateSkin(url);
+                    return;
+                }
+
+                skinLoading = true;
+
                 loadImage(url).then(async (elImage) => {
                     skinBitmap = await createImageBitmap(elImage);
-                    skinUrl = url;
 
                     if (tee.useCustomColor) {
-                        updateTeeImage(tee);
+                        debounceUpdateTeeImage();
                     } else {
                         setTeeSkinValue(tee, `url('${elImage.src}')`);
                     }
+
+                    teeContainer.dataset.skin = url;
+                    skinUrl = url;
+                    skinLoading = false;
+
+                    if (skinLoadedCallback) {
+                        skinLoadedCallback();
+                        skinLoadedCallback = null;
+                    }
                 });
             }
-
-            const debounceUpdateTeeImage = debounce(updateTeeImage, 10);
 
             teeContainer.tee = tee;
 
@@ -508,9 +530,7 @@ surprised_eye: [224, 96, 32, 32]
                     return skinUrl;
                 },
                 set(value) {
-                    skinUrl = parseInt(value);
-                    teeContainer.dataset.skin = value;
-                    debounceUpdateTeeImage();
+                    updateSkin(value);
                 },
             });
 
@@ -573,16 +593,7 @@ surprised_eye: [224, 96, 32, 32]
                 },
             });
 
-            loadImage(skinUrl).then(async (elImage) => {
-                skinBitmap = await createImageBitmap(elImage);
-
-                if (tee.useCustomColor) {
-                    updateTeeImage(tee);
-                } else {
-                    setTeeSkinValue(tee, `url('${elImage.src}')`);
-                }
-            });
-
+            updateSkin(skinUrl);
             createTeeDOM(tee);
 
             return tee;
