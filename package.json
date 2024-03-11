@@ -1,0 +1,20 @@
+{
+    "name": "tee-skin-renderer",
+    "version": "1.0.0",
+    "description": "",
+    "main": "./dist/cjs/index.js",
+    "module": "./dist/esm/index.js",
+    "types": "./dist/types/index.d.ts",
+    "scripts": {
+        "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json",
+        "build:clean": "rm -rf ./build",
+        "build": "npm-run-all build:clean compile"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^20.11.25",
+        "npm-run-all": "^4.1.5",
+        "typescript": "^5.4.2"
+    }
+}
