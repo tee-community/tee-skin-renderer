@@ -1,13 +1,29 @@
-export function debounce(func: Function, delayMs: number) {
-    let timer: NodeJS.Timeout;
+export function debounce(
+    func: Function,
+    wait: number,
+    immediate: boolean = false,
+) {
+    let timeout: NodeJS.Timeout | undefined;
 
-    return function (...args: any[]) {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            func(...args);
-        }, delayMs);
+    return function (this: any) {
+        let context = this;
+        let args = arguments;
+
+        clearTimeout(timeout);
+
+        if (immediate && !timeout) {
+            func.apply(context, args);
+        }
+
+        timeout = setTimeout(function () {
+            timeout = undefined;
+
+            if (!immediate) {
+                func.apply(context, args);
+            };
+        }, wait);
     };
-};
+}
 
 export function loadImage(src: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {

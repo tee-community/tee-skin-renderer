@@ -23,10 +23,10 @@ domReady(() => {
 
             console.log(tee);
 
-            // setInterval(() => {
-            //     tee.colorBody = randomInteger(0, 0xffffff - 1);
-            //     tee.colorFeet = randomInteger(0, 0xffffff - 1);
-            // }, 1000);
+            setInterval(() => {
+                tee.colorBody = randomInteger(0, 0xffffff - 1);
+                tee.colorFeet = randomInteger(0, 0xffffff - 1);
+            }, 1000);
         });
 });
 
