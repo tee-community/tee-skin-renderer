@@ -1,0 +1,125 @@
+.tee {
+    --skin: url('https://skins.scrumplex.net/skin/default.png');
+
+    font-size: 1px;
+    width: 96em;
+    height: 96em;
+    position: relative;
+    content-visibility: auto;
+    contain-intrinsic-size: 96em;
+    display: inline-block;
+}
+
+/*      */
+/* BODY */
+/*      */
+
+.tee::before,
+.tee::after {
+    width: 100%;
+    height: 100%;
+    content: '';
+    display: block;
+    background-image: var(--skin);
+    background-size: 256em 128em;
+    top: 50%;
+    left: 50%;
+    position: absolute;
+    transform: translate(-50%, calc(-50% - 6em));
+
+    -webkit-transition: background-image 500ms ease-in-out;
+    transition: background-image 500ms ease-in-out;
+}
+
+.tee::before {
+    background-position: -96em 0em;
+    z-index: 0;
+}
+
+.tee::after {
+    background-position: 0em 0em;
+    z-index: 1;
+}
+
+/*      */
+/* FEET */
+/*      */
+
+.tee__foot {
+    position: absolute;
+    width: 64em;
+    height: 32em;
+    top: 50%;
+    left: 50%;
+    background-image: var(--skin);
+    background-size: 256em 128em;
+    background-position: -192em -32em;
+
+    -webkit-transition: background-image 200ms ease-in-out;
+    transition: background-image 200ms ease-in-out;
+}
+
+.tee__foot_outline {
+    background-position: -192em -64em;
+}
+
+.tee__foot_left {
+    transform: translate(calc(-50% - 10.5em), calc(-50% + 15em)) scale(1.43, 1.45);
+}
+
+.tee__foot_right {
+    transform: translate(calc(-50% + 10.5em), calc(-50% + 15em)) scale(1.43, 1.45);
+}
+
+/*       */
+/* ORDER */
+/*       */
+
+/*
+        0 - body outline
+        1 - foot right outline
+        1 - foot left outline
+        2 - foot left
+        3 - body
+        4 - eyes
+        5 - foot right
+    */
+
+/* foot left */
+.tee__foot_left {
+    z-index: 2;
+}
+
+/* foot left outline */
+.tee__foot_left.tee__foot_outline {
+    z-index: 1;
+}
+
+/* foot right */
+.tee__foot_right {
+    z-index: 5;
+}
+
+/* foot right outline */
+.tee__foot_right.tee__foot_outline {
+    z-index: 1;
+}
+
+/* body outline */
+.tee::before {
+    z-index: 0;
+}
+
+/* body */
+.tee::after {
+    z-index: 3;
+}
+
+/*        */
+/* COMMON */
+/*        */
+
+.tee::before,
+.tee::after {
+    pointer-events: none;
+}
