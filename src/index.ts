@@ -1,36 +1,33 @@
-// "use strict";
+import * as renderer from './tee';
+import './tee.css';
 
-// const teeRenderer = function (container, config = null) {
-//     return new TeeRenderer(container, config || {});
-// }
+function domReady(callback: Function, ...args: any[]) {
+    args = args !== undefined ? args : [];
 
-// class TeeRenderer {
-//     constructor(container, config) {
-//         let colorBody = teeContainer.dataset.colorBody;
-//         let colorFeet = teeContainer.dataset.colorFeet;
+    if (document.readyState !== 'loading') {
+        callback(...args);
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            callback(...args);
+        });
+    }
+}
 
-//         let skinUrl = teeContainer.dataset.skin;
-//         let skinBitmap = null;
-//         let skinLoading = false;
-//         let skinLoadedCallback = null;
+domReady(() => {
+    const randomInteger = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-//         let offscreen = null;
-//         let offscreenContext = null;
-//         let loadSkinPromise = null;
-//         let loadSkinCallback = null;
-//     }
-// }
+    document
+        .querySelectorAll<HTMLDivElement>('.tee')
+        .forEach((container) => {
+            const tee = renderer.createRenderer(container);
 
-// function domReady(fn, args) {
-//     args = args !== undefined ? args : [];
+            console.log(tee);
 
-//     if (document.readyState !== 'loading') {
-//         fn(...args);
-//     } else {
-//         document.addEventListener('DOMContentLoaded', () => {
-//             fn(...args);
-//         });
-//     }
-// }
+            setInterval(() => {
+                tee.colorBody = randomInteger(0, 0xffffff - 1);
+                tee.colorFeet = randomInteger(0, 0xffffff - 1);
+            }, 1000);
+        });
+});
 
-
+export default renderer;
