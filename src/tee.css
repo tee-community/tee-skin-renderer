@@ -1,5 +1,5 @@
 .tee {
-    --skin: url('https://skins.scrumplex.net/skin/default.png');
+    --skin: none;
 
     font-size: 1px;
     width: 96em;
@@ -8,6 +8,13 @@
     content-visibility: auto;
     contain-intrinsic-size: 96em;
     display: inline-block;
+
+    opacity: 0;
+    transition: opacity 200ms ease-in-out;
+}
+
+.tee_rendered {
+    opacity: 1;
 }
 
 /*      */
@@ -26,9 +33,7 @@
     left: 50%;
     position: absolute;
     transform: translate(-50%, calc(-50% - 6em));
-
-    -webkit-transition: background-image 500ms ease-in-out;
-    transition: background-image 500ms ease-in-out;
+    transition: background-image 200ms ease-in-out;
 }
 
 .tee::before {
@@ -54,8 +59,6 @@
     background-image: var(--skin);
     background-size: 256em 128em;
     background-position: -192em -32em;
-
-    -webkit-transition: background-image 200ms ease-in-out;
     transition: background-image 200ms ease-in-out;
 }
 

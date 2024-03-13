@@ -1,5 +1,22 @@
-import { ColorHsl, ColorRgba, ColorTee, convertHslToRgba, convertTeeColorToHsl, convertTeeColorToRgba } from './color';
+import { ColorHsl, ColorRgba, ColorTee, convertTeeColorToHsl, convertTeeColorToRgba } from './color';
 import { debounce, loadImage } from './helpers';
+
+export interface TeeRendererCustomEventDetail<T> {
+    tee: TeeRenderer;
+    payload: T;
+}
+
+export type TeeRendererCustomEvent<T = undefined> = CustomEvent<TeeRendererCustomEventDetail<T>>;
+export type TeeRendererEventListener<K extends keyof TeeRendererEventsMap> = (this: TeeContainer, ev: TeeRendererEventsMap[K]) => any;
+
+export interface TeeRendererEventsMap {
+    "tee:skin-loaded": TeeRendererCustomEvent<{
+        skin: string;
+        success: boolean;
+    }>;
+
+    "tee:rendered": TeeRendererCustomEvent;
+}
 
 export interface TeeRendererConfig {
     colorBody?: ColorTee;
@@ -15,6 +32,7 @@ export interface TeeContainerDatasetMap extends DOMStringMap {
 
 export interface TeeContainer extends HTMLDivElement {
     readonly dataset: TeeContainerDatasetMap;
+    readonly tee: TeeRenderer;
 }
 
 export class TeeRenderer {
@@ -25,6 +43,7 @@ export class TeeRenderer {
     private _skinUrl: string;
     private _skinBitmap: ImageBitmap | null = null;
     private _skinLoading: boolean = false;
+    private _skinLoadingPromise: Promise<void> | null = null;
     private _skinLoadedCallback: Function | null = null;
 
     private _offscreen: OffscreenCanvas | null = null;
@@ -36,7 +55,9 @@ export class TeeRenderer {
         container: HTMLDivElement,
         config: TeeRendererConfig,
     ) {
-        console.log('TeeRenderer');
+        if ((container as TeeContainer).tee !== undefined) {
+            throw new Error('TeeRenderer already initialized on this container');
+        }
 
         Object.defineProperty(container, 'tee', {
             value: this,
@@ -48,8 +69,15 @@ export class TeeRenderer {
         this._colorFeet = config.colorFeet;
         this._skinUrl = config.skinUrl;
         this._debounceUpdateTeeImage = debounce(this.updateTeeImage, 10);
+        this._container.classList.add('tee_initialized');
 
-        this.updateSkin(this._skinUrl);
+        this.addEventListener('tee:rendered', () => {
+            this._container.classList.add('tee_rendered');
+        }, {
+            once: true,
+        });
+
+        this.loadSkin(this._skinUrl);
     }
 
     public get container(): TeeContainer {
@@ -116,7 +144,7 @@ export class TeeRenderer {
     }
 
     public set skinUrl(url: string) {
-        this.updateSkin(url);
+        this.loadSkin(url);
     }
 
     public get skinBitmap(): ImageBitmap | null {
@@ -125,13 +153,9 @@ export class TeeRenderer {
 
     private setSkinVariableValue(value: string | null) {
         this._container.style.setProperty('--skin', value);
-    };
+    }
 
     private updateTeeImage() {
-        if (this.useCustomColor === false) {
-            return;
-        }
-
         if (this._skinBitmap === null) {
             return;
         }
@@ -152,80 +176,127 @@ export class TeeRenderer {
             this._offscreenContext!.clearRect(0, 0, this._offscreen.width, this._offscreen.height);
         }
 
-        const colorBodyRgba = this.colorBodyRgba || convertTeeColorToRgba(0);
-        const colorFeetRgba = this.colorFeetRgba || convertTeeColorToRgba(0);
-
         this._offscreenContext!.drawImage(this._skinBitmap, 0, 0);
 
-        const imageData = this._offscreenContext!.getImageData(0, 0, this._offscreen.width, this._offscreen.height);
-        const array = imageData.data;
+        if (this.useCustomColor) {
+            const colorBodyRgba = this.colorBodyRgba || convertTeeColorToRgba(0);
+            const colorFeetRgba = this.colorFeetRgba || convertTeeColorToRgba(0);
 
-        const footCoordXStart = this._offscreen.width * (6 / 8);
-        const footCoordXEnd = this._offscreen.width * (8 / 8);
-        const footCoordYStart = this._offscreen.height * (1 / 4);
-        const footCoordYEnd = this._offscreen.height * (3 / 4);
+            const imageData = this._offscreenContext!.getImageData(0, 0, this._offscreen.width, this._offscreen.height);
+            const array = imageData.data;
 
-        for (let index = 0; index < array.length; index += 4) {
-            const x = (index / 4) % this._offscreen.width;
-            const y = Math.floor((index / 4) / this._offscreen.width);
+            const footCoordXStart = this._offscreen.width * (6 / 8);
+            const footCoordXEnd = this._offscreen.width * (8 / 8);
+            const footCoordYStart = this._offscreen.height * (1 / 4);
+            const footCoordYEnd = this._offscreen.height * (3 / 4);
 
-            const greyscale = (array[index] + array[index + 1] + array[index + 2]) / 3;
-            const color =
-                x >= footCoordXStart
-                    && x <= footCoordXEnd
-                    && y >= footCoordYStart
-                    && y <= footCoordYEnd
-                    ? colorFeetRgba
-                    : colorBodyRgba;
+            for (let index = 0; index < array.length; index += 4) {
+                const x = (index / 4) % this._offscreen.width;
+                const y = Math.floor((index / 4) / this._offscreen.width);
 
-            // r
-            array[index] = (greyscale * color[0]) / 255;
-            // g
-            array[index + 1] = (greyscale * color[1]) / 255;
-            // b
-            array[index + 2] = (greyscale * color[2]) / 255;
-            // a
-            array[index + 3] = (array[index + 3] * color[3]) / 255;
+                const greyscale = (array[index] + array[index + 1] + array[index + 2]) / 3;
+                const color =
+                    x >= footCoordXStart
+                        && x <= footCoordXEnd
+                        && y >= footCoordYStart
+                        && y <= footCoordYEnd
+                        ? colorFeetRgba
+                        : colorBodyRgba;
+
+                // r
+                array[index] = (greyscale * color[0]) / 255;
+                // g
+                array[index + 1] = (greyscale * color[1]) / 255;
+                // b
+                array[index + 2] = (greyscale * color[2]) / 255;
+                // a
+                array[index + 3] = (array[index + 3] * color[3]) / 255;
+            }
+
+            this._offscreenContext!.putImageData(imageData, 0, 0);
         }
 
-        this._offscreenContext!.putImageData(imageData, 0, 0);
         this._offscreen.convertToBlob().then((blob) => {
             const url = URL.createObjectURL(blob);
             this.setSkinVariableValue(`url('${url}')`);
+            this.dispatchEvent('tee:rendered');
         });
     }
 
-    private update() {
-        if (this.useCustomColor) {
-            this._debounceUpdateTeeImage();
-        } else {
-            this.setSkinVariableValue(`url('${this._skinUrl}')`);
-        }
+    private dispatchEvent<K extends keyof TeeRendererEventsMap>(
+        ...args: (
+            TeeRendererEventsMap[K]['detail']['payload'] extends undefined
+                ? [K]
+                : [K, TeeRendererEventsMap[K]['detail']['payload']]
+        )
+    ): void {
+        this._container.dispatchEvent(new CustomEvent(args[0], {
+            detail: <TeeRendererEventsMap[K]['detail']> {
+                tee: this,
+                payload: args[1] || undefined,
+            },
+        }));
     }
 
-    private updateSkin(url: string) {
+    public addEventListener<K extends keyof TeeRendererEventsMap>(
+        type: K,
+        listener: TeeRendererEventListener<K>,
+        options?: boolean | AddEventListenerOptions,
+    ) {
+        this._container.addEventListener(
+            (type as unknown) as keyof HTMLElementEventMap,
+            (listener as unknown) as ((this: TeeContainer, ev: Event) => any),
+            options,
+        );
+    }
+
+    public removeEventListener<K extends keyof TeeRendererEventsMap>(
+        type: K,
+        listener: TeeRendererEventListener<K>,
+        options?: boolean | EventListenerOptions,
+    ) {
+        this._container.removeEventListener(
+            (type as unknown) as keyof HTMLElementEventMap,
+            (listener as unknown) as ((this: TeeContainer, ev: Event) => any),
+            options,
+        );
+    }
+
+    public update() {
+        this._debounceUpdateTeeImage();
+    }
+
+    private loadSkin(url: string): Promise<void> {
         if (this._skinLoading) {
-            this._skinLoadedCallback = () => this.updateSkin(url);
-            return;
+            this._skinLoadedCallback = () => this.loadSkin(url);
+        } else {
+            const localFinally = (success: boolean) => {
+                this._skinLoadingPromise = null;
+                this._skinLoading = false;
+                this.dispatchEvent('tee:skin-loaded', {
+                    skin: url,
+                    success: success,
+                });
+
+                this._skinLoadedCallback && this._skinLoadedCallback();
+                this._skinLoadedCallback = null;
+            };
+
+            this._skinLoading = true;
+            this._skinLoadedCallback = null;
+            this._skinLoadingPromise = loadImage(url).then(async (elImage) => {
+                this._skinBitmap = await createImageBitmap(elImage);
+                this._skinUrl = elImage.src;
+                this._container.dataset.skin = this._skinUrl;
+
+                localFinally(true);
+            }).catch(() => {
+                console.warn(`TeeRenderer: cannot load skin '${url}'`);
+                localFinally(false);
+            });
         }
 
-        this._skinLoading = true;
-
-        loadImage(url).then(async (elImage) => {
-            this._skinBitmap = await createImageBitmap(elImage);
-            this._skinUrl = elImage.src;
-            this._skinLoading = false;
-            this._container.dataset.skin = this._skinUrl;
-
-            this.update();
-
-            if (this._skinLoadedCallback) {
-                this._skinLoadedCallback();
-                this._skinLoadedCallback = null;
-            }
-        }).catch(() => {
-            console.warn(`TeeRenderer: cannot load skin '${url}'`);
-        });
+        return this._skinLoadingPromise!;
     }
 }
 
@@ -257,17 +328,46 @@ export function createContainerElements(container: HTMLDivElement) {
     container.appendChild(footRight);
 }
 
-export function createRenderer(container: HTMLDivElement): TeeRenderer {
-    console.log('init');
+export async function createRendererAsync(container: HTMLDivElement): Promise<TeeRenderer> {
+    return new Promise<TeeRenderer>((resolve, reject) => {
+        // loading timeout
+        setTimeout(() => { reject(); }, 20000);
 
-    createContainerElements(container);
+        try {
+            createContainerElements(container);
 
-    const dataset = container.dataset as TeeContainerDatasetMap;
-    const tee = new TeeRenderer(container, {
-        colorBody: parseInt(dataset.colorBody!) || undefined,
-        colorFeet: parseInt(dataset.colorFeet!) || undefined,
-        skinUrl: dataset.skin,
+            const dataset = container.dataset as TeeContainerDatasetMap;
+            const tee = new TeeRenderer(container, {
+                colorBody: parseInt(dataset.colorBody!) || undefined,
+                colorFeet: parseInt(dataset.colorFeet!) || undefined,
+                skinUrl: dataset.skin,
+            });
+
+            tee.addEventListener('tee:skin-loaded', (event) => {
+                resolve(event.detail.tee);
+            }, {
+                once: true,
+            });
+        } catch (error) {
+            reject();
+        }
     });
+}
 
-    return tee;
+export async function initializeAsync() {
+    const tasks =
+        [...document.querySelectorAll<HTMLDivElement>('.tee:not(.tee_initialized)')]
+            .map((container) => createRendererAsync(container));
+
+    await Promise.allSettled(tasks).then((result) => {
+        result.forEach((task) => {
+            if (task.status === 'fulfilled') {
+                try {
+                    task.value.update();
+                } catch (error) {
+                    // do nothing
+                }
+            }
+        });
+    });
 }

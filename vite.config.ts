@@ -5,10 +5,12 @@ import dts from 'vite-plugin-dts';
 
 export default defineConfig({
     build: {
-        emptyOutDir: false,
+        copyPublicDir: false,
+        emptyOutDir: true,
+        minify: false,
         lib: {
             entry: resolve(__dirname, 'src/index.ts'),
-            name: 'tee-skin-renderer',
+            name: 'TeeSkinRenderer',
             fileName: 'tee-skin-renderer',
         },
     },
@@ -31,7 +33,7 @@ export default defineConfig({
         dts({
             include: ['src'],
             outDir: ['dist'],
-            staticImport: true,
+            // staticImport: true,
             rollupTypes: true,
             // declarationOnly: true,
         }),

@@ -39,4 +39,16 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 
         elImage.src = src;
     });
-};
+}
+
+export function domReady(callback: Function, ...args: any[]) {
+    args = args !== undefined ? args : [];
+
+    if (document.readyState !== 'loading') {
+        callback(...args);
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            callback(...args);
+        });
+    }
+}
