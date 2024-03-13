@@ -1,17 +1,18 @@
 {
     "name": "tee-skin-renderer",
     "private": true,
-    "version": "0.0.0",
+    "version": "0.0.1",
     "type": "module",
     "files": [
         "dist"
     ],
-    "main": "./dist/my-lib.umd.cjs",
-    "module": "./dist/my-lib.js",
+    "main": "./dist/tee-skin-renderer.umd.cjs",
+    "module": "./dist/tee-skin-renderer.js",
+    "types": "./dist/tee-skin-renderer.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/my-lib.js",
-            "require": "./dist/my-lib.umd.cjs"
+            "import": "./dist/tee-skin-renderer.js",
+            "require": "./dist/tee-skin-renderer.umd.cjs"
         }
     },
     "scripts": {
