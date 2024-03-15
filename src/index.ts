@@ -1,4 +1,4 @@
-import { initializeAsync } from './tee';
+import { initializeAsync, createAsync } from './tee';
 import * as renderer from './tee';
 import * as color from './color';
 import * as helpers from './helpers';
@@ -13,4 +13,5 @@ export {
     color,
     helpers,
     initializeAsync as init,
+    createAsync as createAsync,
 }

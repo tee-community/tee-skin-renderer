@@ -70,6 +70,7 @@ export class TeeRenderer {
         this._skinUrl = config.skinUrl;
         this._debounceUpdateTeeImage = debounce(this.updateTeeImage, 10);
         this._container.classList.add('tee_initialized');
+        this._container.classList.remove('tee_initializing');
 
         this.addEventListener('tee:rendered', () => {
             this._container.classList.add('tee_rendered');
@@ -217,9 +218,18 @@ export class TeeRenderer {
         }
 
         this._offscreen.convertToBlob().then((blob) => {
+            // prevent image flickering
             const url = URL.createObjectURL(blob);
-            this.setSkinVariableValue(`url('${url}')`);
-            this.dispatchEvent('tee:rendered');
+            const image = new Image();
+
+            image.onload = () => {
+                this.setSkinVariableValue(`url('${url}')`);
+                this.dispatchEvent('tee:rendered');
+
+                image.remove();
+            };
+
+            image.src = url;
         });
     }
 
@@ -328,12 +338,13 @@ export function createContainerElements(container: HTMLDivElement) {
     container.appendChild(footRight);
 }
 
-export async function createRendererAsync(container: HTMLDivElement): Promise<TeeRenderer> {
+export function createRendererAsync(container: HTMLDivElement): Promise<TeeRenderer> {
     return new Promise<TeeRenderer>((resolve, reject) => {
         // loading timeout
         setTimeout(() => { reject(); }, 20000);
 
         try {
+            container.classList.add('tee_initializing');
             createContainerElements(container);
 
             const dataset = container.dataset as TeeContainerDatasetMap;
@@ -349,25 +360,53 @@ export async function createRendererAsync(container: HTMLDivElement): Promise<Te
                 once: true,
             });
         } catch (error) {
+            container.classList.remove('tee_initializing');
             reject();
         }
     });
 }
 
-export async function initializeAsync() {
+export async function initializeAsync(simultaneously: boolean = true) {
     const tasks =
-        [...document.querySelectorAll<HTMLDivElement>('.tee:not(.tee_initialized)')]
+        [...document.querySelectorAll<HTMLDivElement>('.tee:not(.tee_initialized):not(.tee_initializing')]
             .map((container) => createRendererAsync(container));
 
-    await Promise.allSettled(tasks).then((result) => {
-        result.forEach((task) => {
-            if (task.status === 'fulfilled') {
-                try {
-                    task.value.update();
-                } catch (error) {
-                    // do nothing
+    if (simultaneously) {
+        await Promise.allSettled(tasks).then((result) => {
+            result.forEach((task) => {
+                if (task.status === 'fulfilled') {
+                    try {
+                        task.value.update();
+                    } catch (error) {
+                        // do nothing
+                    }
                 }
-            }
+            });
         });
-    });
+    } else {
+        tasks.forEach((task) => {
+            task.then((tee) => tee.update());
+        });
+    }
+}
+
+export async function createAsync(config: TeeRendererConfig): Promise<TeeContainer> {
+    const container = document.createElement('div');
+    const dataset = container.dataset as TeeContainerDatasetMap;
+
+    if (config.colorBody !== undefined) {
+        dataset.colorBody = config.colorBody + '';
+    }
+
+    if (config.colorFeet !== undefined) {
+        dataset.colorFeet = config.colorFeet + '';
+    }
+
+    dataset.skin = config.skinUrl;
+    container.classList.add('tee');
+
+    const tee = await createRendererAsync(container);
+    tee.update();
+
+    return tee.container;
 }

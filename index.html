@@ -10,6 +10,7 @@
 
 <body>
     <!-- the development demo page -->
+    <div id="container"></div>
     <div>
         <div
             class="tee"
@@ -180,6 +181,9 @@
 
     <script type="module">
         import './src/demo.ts';
+        import * as TeeSkinRenderer from './src/index.ts';
+
+        window['TeeSkinRenderer'] = TeeSkinRenderer;
     </script>
 </body>
 
