@@ -1,11 +1,14 @@
 {
     "name": "tee-skin-renderer",
-    "private": true,
     "version": "0.0.1",
     "type": "module",
     "files": [
         "dist"
     ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tee-community/tee-skin-renderer.git"
+    },
     "main": "./dist/tee-skin-renderer.umd.cjs",
     "module": "./dist/tee-skin-renderer.js",
     "types": "./dist/tee-skin-renderer.d.ts",
