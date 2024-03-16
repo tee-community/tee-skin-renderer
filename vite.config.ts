@@ -5,13 +5,18 @@ import dts from 'vite-plugin-dts';
 
 export default defineConfig({
     build: {
-        copyPublicDir: false,
+        copyPublicDir: true,
         emptyOutDir: true,
-        minify: false,
+        minify: true,
         lib: {
             entry: resolve(__dirname, 'src/index.ts'),
             name: 'TeeSkinRenderer',
             fileName: 'tee-skin-renderer',
+        },
+        rollupOptions: {
+            output: {
+                assetFileNames: "tee-skin-renderer.[ext]",
+            },
         },
     },
     resolve: {
@@ -25,17 +30,27 @@ export default defineConfig({
             generateBundle() {
                 this.emitFile({
                     type: 'asset',
-                    fileName: 'index.html',
-                    source: fs.readFileSync(resolve(__dirname, 'index.dist.html'), 'utf-8'),
+                    fileName: 'demo.umd.html',
+                    source: fs.readFileSync(resolve(__dirname, 'demo/demo.umd.html'), 'utf-8'),
+                });
+
+                this.emitFile({
+                    type: 'asset',
+                    fileName: 'demo.html',
+                    source: fs.readFileSync(resolve(__dirname, 'demo/demo.html'), 'utf-8'),
+                });
+
+                this.emitFile({
+                    type: 'asset',
+                    fileName: 'demo.css',
+                    source: fs.readFileSync(resolve(__dirname, 'demo/demo.css'), 'utf-8'),
                 });
             },
         },
         dts({
             include: ['src'],
             outDir: ['dist'],
-            // staticImport: true,
             rollupTypes: true,
-            // declarationOnly: true,
         }),
     ],
 });
