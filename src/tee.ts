@@ -78,7 +78,7 @@ export class TeeRenderer {
             once: true,
         });
 
-        this.loadSkin(this._skinUrl);
+        this.loadSkin(this._skinUrl, false);
     }
 
     public get container(): TeeContainer {
@@ -94,7 +94,7 @@ export class TeeRenderer {
             delete this._container.dataset.colorBody;
         }
 
-        this._colorBody = color;
+        this._colorBody = Number(color);
         this.update();
     }
 
@@ -119,7 +119,7 @@ export class TeeRenderer {
             delete this._container.dataset.colorFeet;
         }
 
-        this._colorFeet = color;
+        this._colorFeet = Number(color);
         this.update();
     }
 
@@ -145,7 +145,7 @@ export class TeeRenderer {
     }
 
     public set skinUrl(url: string) {
-        this.loadSkin(url);
+        this.loadSkin(url, true);
     }
 
     public get skinBitmap(): ImageBitmap | null {
@@ -276,9 +276,9 @@ export class TeeRenderer {
         this._debounceUpdateTeeImage();
     }
 
-    private loadSkin(url: string): Promise<void> {
+    private loadSkin(url: string, update: boolean): Promise<void> {
         if (this._skinLoading) {
-            this._skinLoadedCallback = () => this.loadSkin(url);
+            this._skinLoadedCallback = () => this.loadSkin(url, update);
         } else {
             const localFinally = (success: boolean) => {
                 this._skinLoadingPromise = null;
@@ -287,6 +287,10 @@ export class TeeRenderer {
                     skin: url,
                     success: success,
                 });
+
+                if (update) {
+                    this.update();
+                }
 
                 this._skinLoadedCallback && this._skinLoadedCallback();
                 this._skinLoadedCallback = null;
