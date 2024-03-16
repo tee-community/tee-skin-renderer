@@ -21,17 +21,22 @@ export interface TeeRendererEventsMap {
 export interface TeeRendererConfig {
     colorBody?: ColorTee;
     colorFeet?: ColorTee;
+    useCustomColor?: boolean;
     skinUrl: string;
 }
 
 export interface TeeContainerDatasetMap extends DOMStringMap {
     colorBody?: string;
     colorFeet?: string;
+    useCustomColor?: string;
     skin: string;
 }
 
-export interface TeeContainer extends HTMLDivElement {
+export interface TeeDivElement extends HTMLDivElement {
     readonly dataset: TeeContainerDatasetMap;
+}
+
+export interface TeeContainer extends TeeDivElement {
     readonly tee: TeeRenderer;
 }
 
@@ -39,6 +44,7 @@ export class TeeRenderer {
     private _container: TeeContainer;
     private _colorBody: ColorTee | undefined;
     private _colorFeet: ColorTee | undefined;
+    private _useCustomColor: boolean;
 
     private _skinUrl: string;
     private _skinBitmap: ImageBitmap | null = null;
@@ -48,11 +54,12 @@ export class TeeRenderer {
 
     private _offscreen: OffscreenCanvas | null = null;
     private _offscreenContext: OffscreenCanvasRenderingContext2D | null = null;
+    private _image: HTMLImageElement | null = null;
 
     private readonly _debounceUpdateTeeImage: (...args: any[]) => void;
 
     constructor(
-        container: HTMLDivElement,
+        container: TeeDivElement,
         config: TeeRendererConfig,
     ) {
         if ((container as TeeContainer).tee !== undefined) {
@@ -67,6 +74,9 @@ export class TeeRenderer {
         this._container = container as TeeContainer;
         this._colorBody = config.colorBody;
         this._colorFeet = config.colorFeet;
+        this._useCustomColor = config.useCustomColor !== undefined
+            ? config.useCustomColor
+            : config.colorBody !== undefined || config.colorFeet !== undefined;
         this._skinUrl = config.skinUrl;
         this._debounceUpdateTeeImage = debounce(this.updateTeeImage, 10);
         this._container.classList.add('tee_initialized');
@@ -136,8 +146,13 @@ export class TeeRenderer {
     }
 
     public get useCustomColor(): boolean {
-        return this._colorBody !== undefined
-            || this._colorFeet !== undefined;
+        return this._useCustomColor;
+    }
+
+    public set useCustomColor(useCustomColor: boolean) {
+        this._container.dataset.useCustomColor = useCustomColor ? 'true' : 'false';
+        this._useCustomColor = useCustomColor;
+        this.update();
     }
 
     public get skinUrl(): string {
@@ -220,7 +235,7 @@ export class TeeRenderer {
         this._offscreen.convertToBlob().then((blob) => {
             // prevent image flickering
             const url = URL.createObjectURL(blob);
-            const image = new Image();
+            const image = this._image || (this._image = new Image());
 
             image.onload = () => {
                 this.setSkinVariableValue(`url('${url}')`);
@@ -314,7 +329,7 @@ export class TeeRenderer {
     }
 }
 
-export function createContainerElements(container: HTMLDivElement) {
+export function createContainerElements(container: TeeDivElement) {
     const footLeftOutline = document.createElement('div');
     const footLeft = document.createElement('div');
 
@@ -342,7 +357,10 @@ export function createContainerElements(container: HTMLDivElement) {
     container.appendChild(footRight);
 }
 
-export function createRendererAsync(container: HTMLDivElement): Promise<TeeRenderer> {
+export function createRendererAsync(
+    container: TeeDivElement,
+    config: TeeRendererConfig,
+): Promise<TeeRenderer> {
     return new Promise<TeeRenderer>((resolve, reject) => {
         // loading timeout
         setTimeout(() => { reject(); }, 20000);
@@ -351,13 +369,7 @@ export function createRendererAsync(container: HTMLDivElement): Promise<TeeRende
             container.classList.add('tee_initializing');
             createContainerElements(container);
 
-            const dataset = container.dataset as TeeContainerDatasetMap;
-            const tee = new TeeRenderer(container, {
-                colorBody: parseInt(dataset.colorBody!) || undefined,
-                colorFeet: parseInt(dataset.colorFeet!) || undefined,
-                skinUrl: dataset.skin,
-            });
-
+            const tee = new TeeRenderer(container, config);
             tee.addEventListener('tee:skin-loaded', (event) => {
                 resolve(event.detail.tee);
             }, {
@@ -371,9 +383,15 @@ export function createRendererAsync(container: HTMLDivElement): Promise<TeeRende
 }
 
 export async function initializeAsync(simultaneously: boolean = true) {
-    const tasks =
-        [...document.querySelectorAll<HTMLDivElement>('.tee:not(.tee_initialized):not(.tee_initializing')]
-            .map((container) => createRendererAsync(container));
+    const containers = [...document.querySelectorAll<TeeDivElement>('.tee:not(.tee_initialized):not(.tee_initializing')];
+    const tasks = containers.map((container) => createRendererAsync(container, {
+        colorBody:      parseInt(container.dataset.colorBody!) || undefined,
+        colorFeet:      parseInt(container.dataset.colorFeet!) || undefined,
+        useCustomColor: container.dataset.useCustomColor !== undefined
+            ? container.dataset.useCustomColor === 'true'
+            : undefined,
+        skinUrl:        container.dataset.skin,
+    }));
 
     if (simultaneously) {
         await Promise.allSettled(tasks).then((result) => {
@@ -395,21 +413,24 @@ export async function initializeAsync(simultaneously: boolean = true) {
 }
 
 export async function createAsync(config: TeeRendererConfig): Promise<TeeContainer> {
-    const container = document.createElement('div');
-    const dataset = container.dataset as TeeContainerDatasetMap;
+    const container = document.createElement('div') as TeeDivElement;
 
     if (config.colorBody !== undefined) {
-        dataset.colorBody = config.colorBody + '';
+        container.dataset.colorBody = config.colorBody + '';
     }
 
     if (config.colorFeet !== undefined) {
-        dataset.colorFeet = config.colorFeet + '';
+        container.dataset.colorFeet = config.colorFeet + '';
     }
 
-    dataset.skin = config.skinUrl;
+    if (config.useCustomColor !== undefined) {
+        container.dataset.useCustomColor = config.useCustomColor ? 'true' : 'false';
+    }
+
+    container.dataset.skin = config.skinUrl;
     container.classList.add('tee');
 
-    const tee = await createRendererAsync(container);
+    const tee = await createRendererAsync(container, config);
     tee.update();
 
     return tee.container;
