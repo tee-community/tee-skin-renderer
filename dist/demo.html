@@ -8,87 +8,179 @@
     <link rel="icon" type="image/svg+xml" href="./tee.svg" />
     <link href="./tee-skin-renderer.css" rel="stylesheet">
     <link href="./demo.css" rel="stylesheet">
-    <link rel="preload" as="image" href="https://skins.ddnet.org/skin/community/default.png">
 </head>
 
-
 <body>
-    <div class="wrapper">
+<div>
         <div
-            id="tee"
             class="tee"
-            data-skin="https://skins.scrumplex.net/skin/pinky.png"
+            data-skin="https://skins.scrumplex.net/skin/nanami_glow.png"
             data-color-body="5498880"
-            data-color-feet="3079936">
+            data-color-feet="3079936"
+        >
         </div>
 
-        <input
-            id="skinUrl"
-            class="input_skin"
-            type="text"
-            value="https://skins.scrumplex.net/skin/pinky.png"
-            placeholder="https://skins.scrumplex.net/skin/pinky.png"
-        />
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/cool_glownanami.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
 
-        <input
-            id="colorBody"
-            class="input_color"
-            type="text"
-            value="5498880"
-        />
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/brownbear.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
 
-        <input
-            id="colorFeet"
-            class="input_color"
-            type="text"
-            value="3079936"
-        />
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/zombie1.png"
+            data-color-body="12386048"
+            data-color-feet="8060707"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/glowfox.png"
+            data-color-body="11388573"
+            data-color-feet="11354189"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/ice%20cat.png"
+            data-color-body="0"
+            data-color-feet="0"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/nanami.png"
+            data-color-body="8061161"
+            data-color-feet="1769472"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/oldschool.png"
+            data-color-body="5570815"
+            data-color-feet="8157812"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/FalFy_glow.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/coala_cammostripes.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/mermydon.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/Osu.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/Littleblack.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/jeet.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/birdball.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/WolfTee.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
+
+        <div
+            class="tee"
+            data-skin="https://skins.scrumplex.net/skin/greensward.png"
+            data-color-body="5498880"
+            data-color-feet="3079936"
+        >
+        </div>
     </div>
 
-    <script type="module" src="./tee-skin-renderer.js"></script>
-    <script type="module">
-        function resizable(elements, factor) {
-            var int = Number(factor) || 7.7;
-            var events = 'keyup,keypress,focus,blur,change'.split(',');
+    <div style="display: flex; align-items: center; justify-content: center;">
+        <div
+            class="tee"
+            style="font-size: 0.5px;"
+            data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        >
+        </div>
 
-            elements.forEach((el) => {
-                function resize() {
-                    el.style.width = ((el.value.length + 1) * int) + 'px';
-                }
+        <div
+            class="tee"
+            style="font-size: 0.75px;"
+            data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        >
+        </div>
 
-                for (var i in events) {
-                    el.addEventListener(events[i], resize, false);
-                }
+        <div
+            class="tee"
+            style="font-size: 1px;"
+            data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        >
+        </div>
 
-                resize();
-            });
-        }
+        <div
+            class="tee"
+            style="font-size: 1.5px;"
+            data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        >
+        </div>
+    </div>
 
-        resizable(document.querySelectorAll('input[type="text"]'), 7);
-
-        const elInputSkin = document.getElementById('skinUrl');
-        const elInputColorBody = document.getElementById('colorBody');
-        const elInputColorFeet = document.getElementById('colorFeet');
-        const elTeeContainer = document.getElementById('tee');
-
-        ['keyup', 'change'].forEach((e) => {
-            elInputSkin.addEventListener(e, function () {
-                elTeeContainer.tee.skinUrl = this.value;
-            });
-        });
-
-        ['keyup', 'change'].forEach((e) => {
-            elInputColorBody.addEventListener(e, function () {
-                elTeeContainer.tee.colorBody = this.value;
-            });
-        });
-
-        ['keyup', 'change'].forEach((e) => {
-            elInputColorFeet.addEventListener(e, function () {
-                elTeeContainer.tee.colorFeet = this.value;
-            });
-        });
-    </script>
+    <script type="module" src="./tee-skin-renderer.es.js"></script>
+    <script type="module"></script>
 </body>
 
 </html>

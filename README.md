@@ -1,9 +1,9 @@
 <p align="center"><b>tee-skin-renderer</b> - Teeworlds / DDNet skin renderer for you HTML pages</p>
 
 <p align="center">
-    <a href="https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.cjs">
+    <a href="https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.js">
         <img
-            src="https://img.badgesize.io/https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.cjs?compression=gzip&style=flat-square"
+            src="https://img.badgesize.io/https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.js?compression=gzip&style=flat-square"
             alt="Gzip Size"
         />
     </a>
@@ -53,7 +53,7 @@
         data-color-feet="3079936">
     </div>
     <!-- ... -->
-    <script src="https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.cjs"></script>
+    <script src="https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.js"></script>
 </body>
 ```
 

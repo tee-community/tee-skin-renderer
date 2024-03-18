@@ -1,6 +1,6 @@
 {
     "name": "tee-skin-renderer",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "type": "module",
     "files": [
         "dist"
@@ -9,13 +9,13 @@
         "type": "git",
         "url": "git+https://github.com/tee-community/tee-skin-renderer.git"
     },
-    "main": "./dist/tee-skin-renderer.umd.cjs",
-    "module": "./dist/tee-skin-renderer.js",
+    "main": "./dist/tee-skin-renderer.umd.js",
+    "module": "./dist/tee-skin-renderer.es.js",
     "types": "./dist/tee-skin-renderer.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/tee-skin-renderer.js",
-            "require": "./dist/tee-skin-renderer.umd.cjs"
+            "import": "./dist/tee-skin-renderer.es.js",
+            "require": "./dist/tee-skin-renderer.umd.js"
         }
     },
     "scripts": {
