@@ -12,10 +12,12 @@ export default defineConfig({
             entry: resolve(__dirname, 'src/index.ts'),
             name: 'TeeSkinRenderer',
             fileName: 'tee-skin-renderer',
+            formats: ['es', 'umd'],
         },
         rollupOptions: {
             output: {
-                assetFileNames: "tee-skin-renderer.[ext]",
+                entryFileNames: 'tee-skin-renderer.[format].js',
+                assetFileNames: 'tee-skin-renderer.[ext]',
             },
         },
     },
