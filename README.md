@@ -49,8 +49,24 @@
     <div
         class="tee"
         data-skin="https://skins.scrumplex.net/skin/pinky.png"
+    >
+    </div>
+    <!-- ... -->
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
         data-color-body="5498880"
-        data-color-feet="3079936">
+        data-color-feet="3079936"
+    >
+    </div>
+    <!-- ... -->
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+        data-use-custom-color="false"
+    >
     </div>
     <!-- ... -->
     <script src="https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.js"></script>
