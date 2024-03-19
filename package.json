@@ -1,6 +1,6 @@
 {
     "name": "tee-skin-renderer",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "type": "module",
     "files": [
         "dist"
@@ -18,7 +18,7 @@
             "require": "./dist/tee-skin-renderer.umd.js",
             "types": "./dist/tee-skin-renderer.d.ts"
         },
-        "./dist/tee-skin-renderer.css": {
+        "./css": {
             "import": "./dist/tee-skin-renderer.css",
             "require": "./dist/tee-skin-renderer.css"
         }
