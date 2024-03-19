@@ -53,6 +53,7 @@ export default defineConfig({
             include: ['src'],
             outDir: ['dist'],
             rollupTypes: true,
+            insertTypesEntry: true,
         }),
     ],
 });
