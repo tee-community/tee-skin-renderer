@@ -5,9 +5,10 @@
     width: 96em;
     height: 96em;
     position: relative;
-    content-visibility: auto;
+    content-visibility: visible;
     contain-intrinsic-size: 96em;
     display: inline-block;
+    overflow: visible;
 
     opacity: 0;
     transition: opacity 200ms ease-in-out;
