@@ -75,14 +75,24 @@
 
 ### Usage (ESM)
 
-TODO
-
 ```console
 npm install tee-skin-renderer --save
 ```
 
-```console
-import 'tee-skin-renderer';
+```js
+import { createAsync } from 'tee-skin-renderer';
+import 'tee-skin-renderer/css';
+
+createAsync({ skinUrl: 'https://skins.scrumplex.net/skin/pinky.png' }).then((container) => {
+    document.body.appendChild(container);
+});
+```
+
+```js
+import { init } from 'tee-skin-renderer';
+import 'tee-skin-renderer/css';
+
+init();
 ```
 
 ## License
