@@ -13,6 +13,12 @@
             alt="NPM Version"
         />
     </a>
+    <a href="https://www.npmjs.com/package/tee-skin-renderer">
+        <img
+            src="https://img.shields.io/npm/dt/tee-skin-renderer.svg?style=flat-square"
+            alt="NPM Downloads"
+        />
+    </a>
     <a href="https://github.com/tee-community/tee-skin-renderer/blob/main/LICENSE">
         <img
             src="https://img.shields.io/github/license/tee-community/tee-skin-renderer.svg?style=flat-square"
