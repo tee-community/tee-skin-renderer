@@ -1,23 +1,35 @@
 import { createAsync } from './index';
 import { TeeContainer } from './tee';
 
-createAsync({ skinUrl: 'https://skins.scrumplex.net/skin/pinky.png' }).then((container) => {
+createAsync({
+    followMouse: true,
+    skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
+}).then((container) => {
     document.getElementById('container')!.appendChild(container);
 });
 
-createAsync({ skinUrl: 'https://skins.scrumplex.net/skin/pinky.png' }).then((container) => {
+createAsync({
+    followMouse: false,
+    skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
+}).then((container) => {
     document.getElementById('container')!.appendChild(container);
 });
 
-createAsync({ skinUrl: 'https://skins.scrumplex.net/skin/pinky.png' }).then((container) => {
+createAsync({
+    skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
+}).then((container) => {
     document.getElementById('container')!.appendChild(container);
 });
 
-createAsync({ skinUrl: 'https://skins.scrumplex.net/skin/pinky.png' }).then((container) => {
+createAsync({
+    skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
+}).then((container) => {
     document.getElementById('container')!.appendChild(container);
 });
 
-createAsync({ skinUrl: 'https://skins.scrumplex.net/skin/pinky.png' }).then((container) => {
+createAsync({
+    skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
+}).then((container) => {
     document.getElementById('container')!.appendChild(container);
 });
 

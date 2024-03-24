@@ -48,6 +48,44 @@
 }
 
 /*      */
+/* EYES */
+/*      */
+
+.tee__eyes {
+    position: absolute;
+    top: 37.5%;
+    left: 50%;
+    transform: translate(0px, 0px);
+    transition: transform 150ms ease-out;
+}
+
+
+.tee__eyes::before,
+.tee__eyes::after {
+    display: block;
+    content: '';
+    position: absolute;
+    width: 32em;
+    height: 32em;
+    top: -16em;
+    left: -16em;
+    background-image: var(--skin);
+    background-size: 256em 128em;
+    background-position: -64em 32em;
+    transition: background-image 200ms ease-in-out;
+}
+
+.tee__eyes::before {
+    left: calc(-16em - 4.8em * 1.4);
+    transform: scale(1.2, 1.2);
+}
+
+.tee__eyes::after {
+    left: calc(-16em + 4.8em * 1.4);
+    transform: scale(-1.2, 1.2);
+}
+
+/*      */
 /* FEET */
 /*      */
 
@@ -117,6 +155,10 @@
 /* body */
 .tee::after {
     z-index: 3;
+}
+
+.tee__eyes {
+    z-index: 4;
 }
 
 /*        */
