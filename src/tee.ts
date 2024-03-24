@@ -1,6 +1,14 @@
 import { ColorHsl, ColorRgba, ColorTee, convertTeeColorToHsl, convertTeeColorToRgba } from './color';
 import { debounce, throttle, loadImage } from './helpers';
 
+export type TeeEyeType =
+    | 'normal'
+    | 'angry'
+    | 'pain'
+    | 'happy'
+    | 'dead'
+    | 'surprise';
+
 export interface TeeRendererCustomEventDetail<T> {
     tee: TeeRenderer;
     payload: T;
@@ -10,27 +18,28 @@ export type TeeRendererCustomEvent<T = undefined> = CustomEvent<TeeRendererCusto
 export type TeeRendererEventListener<K extends keyof TeeRendererEventsMap> = (this: TeeContainer, ev: TeeRendererEventsMap[K]) => any;
 
 export interface TeeRendererEventsMap {
-    "tee:skin-loaded": TeeRendererCustomEvent<{
+    'tee:skin-loaded': TeeRendererCustomEvent<{
         skin: string;
         success: boolean;
     }>;
-
-    "tee:rendered": TeeRendererCustomEvent;
+    'tee:rendered': TeeRendererCustomEvent;
 }
 
 export interface TeeRendererConfig {
-    followMouse?: boolean;
     colorBody?: ColorTee;
     colorFeet?: ColorTee;
     useCustomColor?: boolean;
+    eyes?: TeeEyeType;
+    followMouse?: boolean;
     skinUrl: string;
 }
 
 export interface TeeContainerDatasetMap extends DOMStringMap {
-    followMouse?: string;
     colorBody?: string;
     colorFeet?: string;
     useCustomColor?: string;
+    eyes?: TeeEyeType;
+    followMouse?: string;
     skin: string;
 }
 
@@ -45,6 +54,7 @@ export interface TeeContainer extends TeeDivElement {
 
 export class TeeRenderer {
     private _container: TeeContainer;
+    private _eyes: TeeEyeType;
     private _colorBody: ColorTee | undefined;
     private _colorFeet: ColorTee | undefined;
     private _useCustomColor: boolean;
@@ -81,10 +91,11 @@ export class TeeRenderer {
         this._useCustomColor = config.useCustomColor !== undefined
             ? config.useCustomColor
             : config.colorBody !== undefined || config.colorFeet !== undefined;
+        this._eyes = config.eyes ?? 'normal';
         this._skinUrl = config.skinUrl;
-        this._debounceUpdateTeeImage = debounce(this.updateTeeImage, 10);
         this._container.classList.add('tee_initialized');
         this._container.classList.remove('tee_initializing');
+        this._debounceUpdateTeeImage = debounce(this.updateTeeImage, 10);
 
         this.addEventListener('tee:rendered', () => {
             this._container.classList.add('tee_rendered');
@@ -92,46 +103,12 @@ export class TeeRenderer {
             once: true,
         });
 
-        this.loadSkin(this._skinUrl, false);
         this.followMouse = config.followMouse === true;
+        this.loadSkin(this._skinUrl, false);
     }
 
     public get container(): TeeContainer {
         return this._container;
-    }
-
-    public get followMouse(): boolean {
-        return this._followMouseFn !== null;
-    }
-
-    public set followMouse(state: boolean) {
-        if (this.followMouse === state) {
-            return;
-        }
-
-        if (state) {
-            this._followMouseFn = this.mouseFollowThrottleCallbackFactory();
-            document.addEventListener('mousemove', this._followMouseFn);
-        } else {
-            document.removeEventListener('mousemove', this._followMouseFn!);
-            this._followMouseFn = null;
-        }
-    }
-
-    private mouseFollowThrottleCallbackFactory(): (e: MouseEvent) => void {
-        const fn = throttle((e: MouseEvent) => {
-            const containerRect = this._container.getBoundingClientRect();
-            const dx = (e.clientX - (containerRect.x + containerRect.width / 2));
-            const dy = (e.clientY - (containerRect.y + containerRect.height / 2 - containerRect.height * 0.125));
-
-            const a = Math.atan2(dy, dx);
-            const x = (Math.cos(a) * 0.125) * containerRect.width;
-            const y = (Math.sin(a) * 0.1) * containerRect.height;
-
-            this._container.eyes.style.transform = `translate(${x.toFixed(4)}px, ${y.toFixed(4)}px)`;
-        }, 20);
-
-        return fn;
     }
 
     public get colorBody(): ColorTee | undefined {
@@ -192,6 +169,55 @@ export class TeeRenderer {
         this._container.dataset.useCustomColor = useCustomColor ? 'true' : 'false';
         this._useCustomColor = useCustomColor;
         this.update();
+    }
+
+    public get eyes(): TeeEyeType {
+        return this._eyes;
+    }
+
+    public set eyes(type: TeeEyeType) {
+        if (this._eyes === type) {
+            return;
+        }
+
+        this._eyes = type;
+        this._container.dataset.eyes = type;
+    }
+
+    public get followMouse(): boolean {
+        return this._followMouseFn !== null;
+    }
+
+    public set followMouse(state: boolean) {
+        if (this.followMouse === state) {
+            return;
+        }
+
+        if (state) {
+            this._followMouseFn = this.mouseFollowThrottleCallbackFactory();
+            document.addEventListener('mousemove', this._followMouseFn);
+            this._container.dataset.followMouse = 'true';
+        } else {
+            document.removeEventListener('mousemove', this._followMouseFn!);
+            this._followMouseFn = null;
+            this._container.dataset.followMouse = 'false';
+        }
+    }
+
+    private mouseFollowThrottleCallbackFactory(): (e: MouseEvent) => void {
+        const fn = throttle((e: MouseEvent) => {
+            const containerRect = this._container.getBoundingClientRect();
+            const dx = (e.clientX - (containerRect.x + containerRect.width / 2));
+            const dy = (e.clientY - (containerRect.y + containerRect.height / 2 - containerRect.height * 0.125));
+
+            const a = Math.atan2(dy, dx);
+            const x = (Math.cos(a) * 0.125) * containerRect.width;
+            const y = (Math.sin(a) * 0.1) * containerRect.height;
+
+            this._container.eyes.style.transform = `translate(${x.toFixed(4)}px, ${y.toFixed(4)}px)`;
+        }, 20);
+
+        return fn;
     }
 
     public get skinUrl(): string {
@@ -429,13 +455,14 @@ export function createRendererAsync(
 export async function initializeAsync(simultaneously: boolean = true) {
     const containers = [...document.querySelectorAll<TeeDivElement>('.tee:not(.tee_initialized):not(.tee_initializing')];
     const tasks = containers.map((container) => createRendererAsync(container, {
-        followMouse: container.dataset.followMouse !== undefined
-            ? container.dataset.followMouse === 'true'
-            : undefined,
         colorBody: parseInt(container.dataset.colorBody!) || undefined,
         colorFeet: parseInt(container.dataset.colorFeet!) || undefined,
         useCustomColor: container.dataset.useCustomColor !== undefined
             ? container.dataset.useCustomColor === 'true'
+            : undefined,
+        eyes: container.dataset.eyes,
+        followMouse: container.dataset.followMouse !== undefined
+            ? container.dataset.followMouse === 'true'
             : undefined,
         skinUrl: container.dataset.skin,
     }));
@@ -462,10 +489,6 @@ export async function initializeAsync(simultaneously: boolean = true) {
 export async function createAsync(config: TeeRendererConfig): Promise<TeeContainer> {
     const container = document.createElement('div') as TeeDivElement;
 
-    if (config.followMouse !== undefined) {
-        container.dataset.followMouse = config.followMouse ? 'true' : 'false';
-    }
-
     if (config.colorBody !== undefined) {
         container.dataset.colorBody = config.colorBody + '';
     }
@@ -476,6 +499,14 @@ export async function createAsync(config: TeeRendererConfig): Promise<TeeContain
 
     if (config.useCustomColor !== undefined) {
         container.dataset.useCustomColor = config.useCustomColor ? 'true' : 'false';
+    }
+
+    if (config.eyes !== undefined) {
+        container.dataset.eyes = config.eyes;
+    }
+
+    if (config.followMouse !== undefined) {
+        container.dataset.followMouse = config.followMouse ? 'true' : 'false';
     }
 
     container.dataset.skin = config.skinUrl;

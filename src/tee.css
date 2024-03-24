@@ -84,39 +84,36 @@
     transform: scale(-1.2, 1.2);
 }
 
-/*
-eye_surprise: (7/8, 3/4) to (8/8, 4/4) */
-
 .tee__eyes::before,
 .tee__eyes::after,
-.tee_normal .tee__eyes::before,
-.tee_normal .tee__eyes::after {
+.tee[data-eyes="normal"] .tee__eyes::before,
+.tee[data-eyes="normal"] .tee__eyes::after {
     background-position: -64em 32em;
 }
 
-.tee_angry .tee__eyes::before,
-.tee_angry .tee__eyes::after {
+.tee[data-eyes="angry"] .tee__eyes::before,
+.tee[data-eyes="angry"] .tee__eyes::after {
     background-position: -96em 32em;
 }
 
-.tee_pain .tee__eyes::before,
-.tee_pain .tee__eyes::after {
+.tee[data-eyes="pain"] .tee__eyes::before,
+.tee[data-eyes="pain"] .tee__eyes::after {
     background-position: -128em 32em;
 }
 
-.tee_happy .tee__eyes::before,
-.tee_happy .tee__eyes::after {
+.tee[data-eyes="happy"] .tee__eyes::before,
+.tee[data-eyes="happy"] .tee__eyes::after {
     background-position: -160em 32em;
 }
 
-.tee_dead .tee__eyes::before,
-.tee_dead .tee__eyes::after {
+.tee[data-eyes="dead"] .tee__eyes::before,
+.tee[data-eyes="dead"] .tee__eyes::after {
     background-position: -192em 32em;
 }
 
-.tee_surprise .tee__eyes::before,
-.tee_surprise .tee__eyes::after {
-    background-position: -192em 32em;
+.tee[data-eyes="surprise"] .tee__eyes::before,
+.tee[data-eyes="surprise"] .tee__eyes::after {
+    background-position: -224em 32em;
 }
 
 /*      */

@@ -2,6 +2,7 @@ import { createAsync } from './index';
 import { TeeContainer } from './tee';
 
 createAsync({
+    eyes: 'normal',
     followMouse: true,
     skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
 }).then((container) => {
@@ -9,6 +10,7 @@ createAsync({
 });
 
 createAsync({
+    eyes: 'angry',
     followMouse: false,
     skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
 }).then((container) => {
@@ -16,18 +18,28 @@ createAsync({
 });
 
 createAsync({
+    eyes: 'pain',
     skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
 }).then((container) => {
     document.getElementById('container')!.appendChild(container);
 });
 
 createAsync({
+    eyes: 'happy',
     skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
 }).then((container) => {
     document.getElementById('container')!.appendChild(container);
 });
 
 createAsync({
+    eyes: 'dead',
+    skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
+}).then((container) => {
+    document.getElementById('container')!.appendChild(container);
+});
+
+createAsync({
+    eyes: 'surprise',
     skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
 }).then((container) => {
     document.getElementById('container')!.appendChild(container);
