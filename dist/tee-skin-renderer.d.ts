@@ -28,13 +28,14 @@ declare function createContainerElements(container: TeeDivElement): void;
 
 declare function createRendererAsync(container: TeeDivElement, config: TeeRendererConfig): Promise<TeeRenderer>;
 
-declare function debounce(func: Function, wait: number, immediate?: boolean): (this: any) => void;
+declare function debounce(fn: Function, wait: number, immediate?: boolean): (this: any) => void;
 
 declare function domReady(callback: Function, ...args: any[]): void;
 
 declare namespace helpers {
     export {
         debounce,
+        throttle,
         loadImage,
         domReady
     }
@@ -51,6 +52,7 @@ declare namespace renderer {
         createRendererAsync,
         init as initializeAsync,
         createAsync,
+        TeeEyeType,
         TeeRendererCustomEventDetail,
         TeeRendererCustomEvent,
         TeeRendererEventListener,
@@ -72,18 +74,25 @@ declare interface TeeContainerDatasetMap extends DOMStringMap {
     colorBody?: string;
     colorFeet?: string;
     useCustomColor?: string;
+    eyes?: TeeEyeType;
+    followMouse?: string;
     skin: string;
 }
 
 declare interface TeeDivElement extends HTMLDivElement {
     readonly dataset: TeeContainerDatasetMap;
+    readonly eyes: HTMLDivElement;
 }
+
+declare type TeeEyeType = 'normal' | 'angry' | 'pain' | 'happy' | 'dead' | 'surprise';
 
 declare class TeeRenderer {
     private _container;
+    private _eyes;
     private _colorBody;
     private _colorFeet;
     private _useCustomColor;
+    private _followMouseFn;
     private _skinUrl;
     private _skinBitmap;
     private _skinLoading;
@@ -105,6 +114,11 @@ declare class TeeRenderer {
     get colorFeetRgba(): ColorRgba | undefined;
     get useCustomColor(): boolean;
     set useCustomColor(useCustomColor: boolean);
+    get eyes(): TeeEyeType;
+    set eyes(type: TeeEyeType);
+    get followMouse(): boolean;
+    set followMouse(state: boolean);
+    private mouseFollowThrottleCallbackFactory;
     get skinUrl(): string;
     set skinUrl(url: string);
     get skinBitmap(): ImageBitmap | null;
@@ -121,6 +135,8 @@ declare interface TeeRendererConfig {
     colorBody?: ColorTee;
     colorFeet?: ColorTee;
     useCustomColor?: boolean;
+    eyes?: TeeEyeType;
+    followMouse?: boolean;
     skinUrl: string;
 }
 
@@ -134,11 +150,13 @@ declare interface TeeRendererCustomEventDetail<T> {
 declare type TeeRendererEventListener<K extends keyof TeeRendererEventsMap> = (this: TeeContainer, ev: TeeRendererEventsMap[K]) => any;
 
 declare interface TeeRendererEventsMap {
-    "tee:skin-loaded": TeeRendererCustomEvent<{
+    'tee:skin-loaded': TeeRendererCustomEvent<{
         skin: string;
         success: boolean;
     }>;
-    "tee:rendered": TeeRendererCustomEvent;
+    'tee:rendered': TeeRendererCustomEvent;
 }
+
+declare function throttle(fn: Function, wait?: number): (this: any) => void;
 
 export { }

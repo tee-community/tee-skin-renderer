@@ -1,6 +1,6 @@
-var w = Object.defineProperty;
-var E = (o, e, s) => e in o ? w(o, e, { enumerable: !0, configurable: !0, writable: !0, value: s }) : o[e] = s;
-var a = (o, e, s) => (E(o, typeof e != "symbol" ? e + "" : e, s), s);
+var F = Object.defineProperty;
+var E = (o, e, s) => e in o ? F(o, e, { enumerable: !0, configurable: !0, writable: !0, value: s }) : o[e] = s;
+var l = (o, e, s) => (E(o, typeof e != "symbol" ? e + "" : e, s), s);
 function f(o) {
   return [
     (o >> 16 & 255) * 360 / 255,
@@ -8,33 +8,42 @@ function f(o) {
     ((o & 255) / 2 + 128) * 100 / 255
   ];
 }
-function _(o) {
-  return C(f(o));
+function u(o) {
+  return p(f(o));
 }
-function C(o, e = 255) {
+function p(o, e = 255) {
   const s = o[0] / 360, t = o[1] / 100, i = o[2] / 100;
-  let r, l, d;
+  let n, r, d;
   if (t === 0)
     return d = i * 255, [d, d, d, e];
-  i < 0.5 ? r = i * (1 + t) : r = i + t - i * t;
-  const c = 2 * i - r, n = [0, 0, 0, e];
+  i < 0.5 ? n = i * (1 + t) : n = i + t - i * t;
+  const c = 2 * i - n, a = [0, 0, 0, e];
   for (let h = 0; h < 3; h++)
-    l = s + 1 / 3 * -(h - 1), l < 0 && l++, l > 1 && l--, 6 * l < 1 ? d = c + (r - c) * 6 * l : 2 * l < 1 ? d = r : 3 * l < 2 ? d = c + (r - c) * (2 / 3 - l) * 6 : d = c, n[h] = d * 255;
-  return n;
+    r = s + 1 / 3 * -(h - 1), r < 0 && r++, r > 1 && r--, 6 * r < 1 ? d = c + (n - c) * 6 * r : 2 * r < 1 ? d = n : 3 * r < 2 ? d = c + (n - c) * (2 / 3 - r) * 6 : d = c, a[h] = d * 255;
+  return a;
 }
 const R = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  convertHslToRgba: C,
+  convertHslToRgba: p,
   convertTeeColorToHsl: f,
-  convertTeeColorToRgba: _
+  convertTeeColorToRgba: u
 }, Symbol.toStringTag, { value: "Module" }));
-function p(o, e, s = !1) {
+function C(o, e, s = !1) {
   let t;
   return function() {
-    let i = this, r = arguments;
-    clearTimeout(t), s && !t && o.apply(i, r), t = setTimeout(function() {
-      t = void 0, s || o.apply(i, r);
+    let i = this, n = arguments;
+    clearTimeout(t), s && !t && o.apply(i, n), t = setTimeout(function() {
+      t = void 0, s || o.apply(i, n);
     }, e);
+  };
+}
+function g(o, e = 300) {
+  let s, t, i;
+  return function() {
+    const n = this, r = arguments;
+    s ? (clearTimeout(t), t = setTimeout(() => {
+      Date.now() - i >= e && (o.apply(n, r), i = Date.now());
+    }, Math.max(e - (Date.now() - i), 0))) : (o.apply(n, r), i = Date.now(), s = !0);
   };
 }
 function k(o) {
@@ -47,42 +56,45 @@ function k(o) {
     }), t.src = o;
   });
 }
-function y(o, ...e) {
+function w(o, ...e) {
   e = e !== void 0 ? e : [], document.readyState !== "loading" ? o(...e) : document.addEventListener("DOMContentLoaded", () => {
     o(...e);
   });
 }
-const S = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const x = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  debounce: p,
-  domReady: y,
-  loadImage: k
+  debounce: C,
+  domReady: w,
+  loadImage: k,
+  throttle: g
 }, Symbol.toStringTag, { value: "Module" }));
 class L {
   constructor(e, s) {
-    a(this, "_container");
-    a(this, "_colorBody");
-    a(this, "_colorFeet");
-    a(this, "_useCustomColor");
-    a(this, "_skinUrl");
-    a(this, "_skinBitmap", null);
-    a(this, "_skinLoading", !1);
-    a(this, "_skinLoadingPromise", null);
-    a(this, "_skinLoadedCallback", null);
-    a(this, "_offscreen", null);
-    a(this, "_offscreenContext", null);
-    a(this, "_image", null);
-    a(this, "_debounceUpdateTeeImage");
+    l(this, "_container");
+    l(this, "_eyes");
+    l(this, "_colorBody");
+    l(this, "_colorFeet");
+    l(this, "_useCustomColor");
+    l(this, "_followMouseFn", null);
+    l(this, "_skinUrl");
+    l(this, "_skinBitmap", null);
+    l(this, "_skinLoading", !1);
+    l(this, "_skinLoadingPromise", null);
+    l(this, "_skinLoadedCallback", null);
+    l(this, "_offscreen", null);
+    l(this, "_offscreenContext", null);
+    l(this, "_image", null);
+    l(this, "_debounceUpdateTeeImage");
     if (e.tee !== void 0)
       throw new Error("TeeRenderer already initialized on this container");
     Object.defineProperty(e, "tee", {
       value: this,
       writable: !1
-    }), this._container = e, this._colorBody = s.colorBody, this._colorFeet = s.colorFeet, this._useCustomColor = s.useCustomColor !== void 0 ? s.useCustomColor : s.colorBody !== void 0 || s.colorFeet !== void 0, this._skinUrl = s.skinUrl, this._debounceUpdateTeeImage = p(this.updateTeeImage, 10), this._container.classList.add("tee_initialized"), this._container.classList.remove("tee_initializing"), this.addEventListener("tee:rendered", () => {
+    }), this._container = e, this._colorBody = s.colorBody, this._colorFeet = s.colorFeet, this._useCustomColor = s.useCustomColor !== void 0 ? s.useCustomColor : s.colorBody !== void 0 || s.colorFeet !== void 0, this._eyes = s.eyes ?? "normal", this._skinUrl = s.skinUrl, this._container.classList.add("tee_initialized"), this._container.classList.remove("tee_initializing"), this._debounceUpdateTeeImage = C(this.updateTeeImage, 10), this.addEventListener("tee:rendered", () => {
       this._container.classList.add("tee_rendered");
     }, {
       once: !0
-    }), this.loadSkin(this._skinUrl, !1);
+    }), this.followMouse = s.followMouse === !0, this.loadSkin(this._skinUrl, !1);
   }
   get container() {
     return this._container;
@@ -97,7 +109,7 @@ class L {
     return this._colorBody === void 0 ? void 0 : f(this._colorBody);
   }
   get colorBodyRgba() {
-    return this._colorBody === void 0 ? void 0 : _(this._colorBody);
+    return this._colorBody === void 0 ? void 0 : u(this._colorBody);
   }
   get colorFeet() {
     return this._colorFeet;
@@ -109,13 +121,31 @@ class L {
     return this._colorFeet === void 0 ? void 0 : f(this._colorFeet);
   }
   get colorFeetRgba() {
-    return this._colorFeet === void 0 ? void 0 : _(this._colorFeet);
+    return this._colorFeet === void 0 ? void 0 : u(this._colorFeet);
   }
   get useCustomColor() {
     return this._useCustomColor;
   }
   set useCustomColor(e) {
     this._container.dataset.useCustomColor = e ? "true" : "false", this._useCustomColor = e, this.update();
+  }
+  get eyes() {
+    return this._eyes;
+  }
+  set eyes(e) {
+    this._eyes !== e && (this._eyes = e, this._container.dataset.eyes = e);
+  }
+  get followMouse() {
+    return this._followMouseFn !== null;
+  }
+  set followMouse(e) {
+    this.followMouse !== e && (e ? (this._followMouseFn = this.mouseFollowThrottleCallbackFactory(), document.addEventListener("mousemove", this._followMouseFn), this._container.dataset.followMouse = "true") : (document.removeEventListener("mousemove", this._followMouseFn), this._followMouseFn = null, this._container.dataset.followMouse = "false"));
+  }
+  mouseFollowThrottleCallbackFactory() {
+    return g((s) => {
+      const t = this._container.getBoundingClientRect(), i = s.clientX - (t.x + t.width / 2), n = s.clientY - (t.y + t.height / 2 - t.height * 0.125), r = Math.atan2(n, i), d = Math.cos(r) * 0.125 * t.width, c = Math.sin(r) * 0.1 * t.height;
+      this._container.eyes.style.transform = `translate(${d.toFixed(4)}px, ${c.toFixed(4)}px)`;
+    }, 20);
   }
   get skinUrl() {
     return this._skinUrl;
@@ -134,17 +164,17 @@ class L {
       if (this._offscreen === null ? (this._offscreen = new OffscreenCanvas(this._skinBitmap.width, this._skinBitmap.height), this._offscreenContext = this._offscreen.getContext("2d", {
         willReadFrequently: !0
       })) : ((this._offscreen.width !== this._skinBitmap.width || this._offscreen.height !== this._skinBitmap.height) && (this._offscreen.width = this._skinBitmap.width, this._offscreen.height = this._skinBitmap.height), this._offscreenContext.clearRect(0, 0, this._offscreen.width, this._offscreen.height)), this._offscreenContext.drawImage(this._skinBitmap, 0, 0), this.useCustomColor) {
-        const e = this.colorBodyRgba || _(0), s = this.colorFeetRgba || _(0), t = this._offscreenContext.getImageData(0, 0, this._offscreen.width, this._offscreen.height), i = t.data, r = this._offscreen.width * (6 / 8), l = this._offscreen.width * (8 / 8), d = this._offscreen.height * (1 / 4), c = this._offscreen.height * (3 / 4);
-        for (let n = 0; n < i.length; n += 4) {
-          const h = n / 4 % this._offscreen.width, g = Math.floor(n / 4 / this._offscreen.width), m = (i[n] + i[n + 1] + i[n + 2]) / 3, u = h >= r && h <= l && g >= d && g <= c ? s : e;
-          i[n] = m * u[0] / 255, i[n + 1] = m * u[1] / 255, i[n + 2] = m * u[2] / 255, i[n + 3] = i[n + 3] * u[3] / 255;
+        const e = this.colorBodyRgba || u(0), s = this.colorFeetRgba || u(0), t = this._offscreenContext.getImageData(0, 0, this._offscreen.width, this._offscreen.height), i = t.data, n = this._offscreen.width * (6 / 8), r = this._offscreen.width * (8 / 8), d = this._offscreen.height * (1 / 4), c = this._offscreen.height * (3 / 4);
+        for (let a = 0; a < i.length; a += 4) {
+          const h = a / 4 % this._offscreen.width, v = Math.floor(a / 4 / this._offscreen.width), m = (i[a] + i[a + 1] + i[a + 2]) / 3, _ = h >= n && h <= r && v >= d && v <= c ? s : e;
+          i[a] = m * _[0] / 255, i[a + 1] = m * _[1] / 255, i[a + 2] = m * _[2] / 255, i[a + 3] = i[a + 3] * _[3] / 255;
         }
         this._offscreenContext.putImageData(t, 0, 0);
       }
       this._offscreen.convertToBlob().then((e) => {
         const s = URL.createObjectURL(e), t = this._image || (this._image = new Image());
         t.onload = () => {
-          this.setSkinVariableValue(`url('${s}')`), this.dispatchEvent("tee:rendered"), t.remove();
+          this.setSkinVariableValue(`url('${s}')`), this.dispatchEvent("tee:rendered");
         }, t.src = s;
       });
     }
@@ -193,18 +223,18 @@ class L {
     return this._skinLoadingPromise;
   }
 }
-function B(o) {
-  const e = document.createElement("div"), s = document.createElement("div"), t = document.createElement("div"), i = document.createElement("div");
-  e.classList.add("tee__foot"), e.classList.add("tee__foot_left"), e.classList.add("tee__foot_outline"), s.classList.add("tee__foot"), s.classList.add("tee__foot_left"), t.classList.add("tee__foot"), t.classList.add("tee__foot_right"), t.classList.add("tee__foot_outline"), i.classList.add("tee__foot"), i.classList.add("tee__foot_right"), o.replaceChildren(), o.appendChild(e), o.appendChild(s), o.appendChild(t), o.appendChild(i);
+function b(o) {
+  const e = document.createElement("div"), s = document.createElement("div"), t = document.createElement("div"), i = document.createElement("div"), n = document.createElement("div");
+  e.classList.add("tee__eyes"), s.classList.add("tee__foot"), s.classList.add("tee__foot_left"), s.classList.add("tee__foot_outline"), t.classList.add("tee__foot"), t.classList.add("tee__foot_left"), i.classList.add("tee__foot"), i.classList.add("tee__foot_right"), i.classList.add("tee__foot_outline"), n.classList.add("tee__foot"), n.classList.add("tee__foot_right"), o.replaceChildren(), o.appendChild(e), o.appendChild(s), o.appendChild(t), o.appendChild(i), o.appendChild(n), o.eyes = e;
 }
-function v(o, e) {
+function y(o, e) {
   return new Promise((s, t) => {
     setTimeout(() => {
       t();
     }, 2e4);
     try {
-      o.classList.add("tee_initializing"), B(o), new L(o, e).addEventListener("tee:skin-loaded", (r) => {
-        s(r.detail.tee);
+      o.classList.add("tee_initializing"), b(o), new L(o, e).addEventListener("tee:skin-loaded", (n) => {
+        s(n.detail.tee);
       }, {
         once: !0
       });
@@ -213,11 +243,13 @@ function v(o, e) {
     }
   });
 }
-async function b(o = !0) {
-  const s = [...document.querySelectorAll(".tee:not(.tee_initialized):not(.tee_initializing")].map((t) => v(t, {
+async function B(o = !0) {
+  const s = [...document.querySelectorAll(".tee:not(.tee_initialized):not(.tee_initializing")].map((t) => y(t, {
     colorBody: parseInt(t.dataset.colorBody) || void 0,
     colorFeet: parseInt(t.dataset.colorFeet) || void 0,
     useCustomColor: t.dataset.useCustomColor !== void 0 ? t.dataset.useCustomColor === "true" : void 0,
+    eyes: t.dataset.eyes,
+    followMouse: t.dataset.followMouse !== void 0 ? t.dataset.followMouse === "true" : void 0,
     skinUrl: t.dataset.skin
   }));
   o ? await Promise.allSettled(s).then((t) => {
@@ -232,27 +264,27 @@ async function b(o = !0) {
     t.then((i) => i.update());
   });
 }
-async function F(o) {
+async function M(o) {
   const e = document.createElement("div");
-  o.colorBody !== void 0 && (e.dataset.colorBody = o.colorBody + ""), o.colorFeet !== void 0 && (e.dataset.colorFeet = o.colorFeet + ""), o.useCustomColor !== void 0 && (e.dataset.useCustomColor = o.useCustomColor ? "true" : "false"), e.dataset.skin = o.skinUrl, e.classList.add("tee");
-  const s = await v(e, o);
+  o.colorBody !== void 0 && (e.dataset.colorBody = o.colorBody + ""), o.colorFeet !== void 0 && (e.dataset.colorFeet = o.colorFeet + ""), o.useCustomColor !== void 0 && (e.dataset.useCustomColor = o.useCustomColor ? "true" : "false"), o.eyes !== void 0 && (e.dataset.eyes = o.eyes), o.followMouse !== void 0 && (e.dataset.followMouse = o.followMouse ? "true" : "false"), e.dataset.skin = o.skinUrl, e.classList.add("tee");
+  const s = await y(e, o);
   return s.update(), s.container;
 }
-const U = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const S = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   TeeRenderer: L,
-  createAsync: F,
-  createContainerElements: B,
-  createRendererAsync: v,
-  initializeAsync: b
+  createAsync: M,
+  createContainerElements: b,
+  createRendererAsync: y,
+  initializeAsync: B
 }, Symbol.toStringTag, { value: "Module" }));
-y(() => {
-  b();
+w(() => {
+  B();
 });
 export {
   R as color,
-  F as createAsync,
-  S as helpers,
-  b as init,
-  U as renderer
+  M as createAsync,
+  x as helpers,
+  B as init,
+  S as renderer
 };
