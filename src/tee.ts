@@ -78,8 +78,8 @@ export class TeeRenderer {
 
     private _offscreen: OffscreenCanvas | null = null;
     private _offscreenContext: OffscreenCanvasRenderingContext2D | null = null;
-    private _image: HTMLImageElement | null = null;
     private _currentObjectUrl: string | null = null;
+    private _cachedColorKey: string | null = null;
 
     private readonly _debounceUpdateTeeImage: () => void;
 
@@ -282,8 +282,19 @@ export class TeeRenderer {
         this._container.style.setProperty('--skin', value);
     }
 
+    private getColorCacheKey(): string {
+        if (!this._useCustomColor) return 'no-color';
+        return `${this._colorBody ?? 0}:${this._colorFeet ?? 0}`;
+    }
+
     private updateTeeImage() {
         if (this._skinBitmap === null) {
+            return;
+        }
+
+        // Skip pixel processing if colors haven't changed
+        const colorKey = this.getColorCacheKey();
+        if (this._cachedColorKey === colorKey) {
             return;
         }
 
@@ -349,20 +360,14 @@ export class TeeRenderer {
         }
 
         this._offscreen.convertToBlob().then((blob) => {
-            // prevent image flickering
+            if (this._currentObjectUrl) {
+                URL.revokeObjectURL(this._currentObjectUrl);
+            }
             const url = URL.createObjectURL(blob);
-            const image = this._image || (this._image = new Image());
-
-            image.onload = () => {
-                if (this._currentObjectUrl) {
-                    URL.revokeObjectURL(this._currentObjectUrl);
-                }
-                this._currentObjectUrl = url;
-                this.setSkinVariableValue(`url('${url}')`);
-                this.dispatchEvent('tee:rendered');
-            };
-
-            image.src = url;
+            this._currentObjectUrl = url;
+            this._cachedColorKey = colorKey;
+            this.setSkinVariableValue(`url('${url}')`);
+            this.dispatchEvent('tee:rendered');
         });
     }
 
@@ -547,7 +552,7 @@ export class TeeRenderer {
 
         this._offscreen = null;
         this._offscreenContext = null;
-        this._image = null;
+        this._cachedColorKey = null;
         this._skinLoadedCallback = null;
 
         this.setSkinVariableValue(null);
@@ -578,6 +583,7 @@ export class TeeRenderer {
             this._skinLoadedCallback = null;
             this._skinLoadingPromise = loadImage(url).then(async (elImage) => {
                 this._skinBitmap = await createImageBitmap(elImage);
+                this._cachedColorKey = null;
                 this._skinUrl = elImage.src;
                 this._container.dataset.skin = this._skinUrl;
 

@@ -220,8 +220,8 @@ var F = /* @__PURE__ */ t({
 	_skinLoadedCallback = null;
 	_offscreen = null;
 	_offscreenContext = null;
-	_image = null;
 	_currentObjectUrl = null;
+	_cachedColorKey = null;
 	_debounceUpdateTeeImage;
 	constructor(e, t) {
 		if (e.tee !== void 0) throw Error("TeeRenderer already initialized on this container");
@@ -307,8 +307,13 @@ var F = /* @__PURE__ */ t({
 	setSkinVariableValue(e) {
 		this._container.style.setProperty("--skin", e);
 	}
+	getColorCacheKey() {
+		return this._useCustomColor ? `${this._colorBody ?? 0}:${this._colorFeet ?? 0}` : "no-color";
+	}
 	updateTeeImage() {
-		if (this._skinBitmap !== null) {
+		if (this._skinBitmap === null) return;
+		let e = this.getColorCacheKey();
+		if (this._cachedColorKey !== e) {
 			if (this._offscreen === null ? (this._offscreen = new OffscreenCanvas(this._skinBitmap.width, this._skinBitmap.height), this._offscreenContext = this._offscreen.getContext("2d", { willReadFrequently: !0 })) : ((this._offscreen.width !== this._skinBitmap.width || this._offscreen.height !== this._skinBitmap.height) && (this._offscreen.width = this._skinBitmap.width, this._offscreen.height = this._skinBitmap.height), this._offscreenContext.clearRect(0, 0, this._offscreen.width, this._offscreen.height)), this._offscreenContext.drawImage(this._skinBitmap, 0, 0), this.useCustomColor) {
 				let e = this.colorBodyRgba || i(0), t = this.colorFeetRgba || i(0), n = this._offscreenContext.getImageData(0, 0, this._offscreen.width, this._offscreen.height), r = n.data, s = this._offscreen.width, c = this._offscreen.height, l = 6 / 8 * s, u = s, d = 1 / 4 * c, f = 3 / 4 * c, p = a(r, s, {
 					x: 0,
@@ -322,11 +327,10 @@ var F = /* @__PURE__ */ t({
 				}
 				this._offscreenContext.putImageData(n, 0, 0);
 			}
-			this._offscreen.convertToBlob().then((e) => {
-				let t = URL.createObjectURL(e), n = this._image ||= new Image();
-				n.onload = () => {
-					this._currentObjectUrl && URL.revokeObjectURL(this._currentObjectUrl), this._currentObjectUrl = t, this.setSkinVariableValue(`url('${t}')`), this.dispatchEvent("tee:rendered");
-				}, n.src = t;
+			this._offscreen.convertToBlob().then((t) => {
+				this._currentObjectUrl && URL.revokeObjectURL(this._currentObjectUrl);
+				let n = URL.createObjectURL(t);
+				this._currentObjectUrl = n, this._cachedColorKey = e, this.setSkinVariableValue(`url('${n}')`), this.dispatchEvent("tee:rendered");
 			});
 		}
 	}
@@ -378,7 +382,7 @@ var F = /* @__PURE__ */ t({
 		F(u, j, N, I, I), F(x, j - z, M + B, L, R), F(b, j - z, M + B, L, R), F(l, j, N, I, I), F(V, j - W, G, H, U), F(V, j + W, G, H, U, !0), F(x, j + z, M + B, L, R), F(b, j + z, M + B, L, R);
 	}
 	destroy() {
-		this.followMouse = !1, this._currentObjectUrl &&= (URL.revokeObjectURL(this._currentObjectUrl), null), this._skinBitmap &&= (this._skinBitmap.close(), null), this._offscreen = null, this._offscreenContext = null, this._image = null, this._skinLoadedCallback = null, this.setSkinVariableValue(null), this._container.classList.remove("tee_initialized", "tee_rendered");
+		this.followMouse = !1, this._currentObjectUrl &&= (URL.revokeObjectURL(this._currentObjectUrl), null), this._skinBitmap &&= (this._skinBitmap.close(), null), this._offscreen = null, this._offscreenContext = null, this._cachedColorKey = null, this._skinLoadedCallback = null, this.setSkinVariableValue(null), this._container.classList.remove("tee_initialized", "tee_rendered");
 	}
 	loadSkin(e, t) {
 		if (this._skinLoading) this._skinLoadedCallback = () => this.loadSkin(e, t);
@@ -390,7 +394,7 @@ var F = /* @__PURE__ */ t({
 				}), t && this.update(), this._skinLoadedCallback && this._skinLoadedCallback(), this._skinLoadedCallback = null;
 			};
 			this._skinLoading = !0, this._skinLoadedCallback = null, this._skinLoadingPromise = N(e).then(async (e) => {
-				this._skinBitmap = await createImageBitmap(e), this._skinUrl = e.src, this._container.dataset.skin = this._skinUrl, n(!0);
+				this._skinBitmap = await createImageBitmap(e), this._cachedColorKey = null, this._skinUrl = e.src, this._container.dataset.skin = this._skinUrl, n(!0);
 			}).catch(() => {
 				console.warn(`TeeRenderer: cannot load skin '${e}'`), n(!1);
 			});

@@ -231,15 +231,24 @@
         }
 
         .eye-btn {
-            padding: 8px 0;
+            padding: 6px 0 2px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             background: rgba(255, 255, 255, 0.04);
             color: #888;
-            font-size: 12px;
+            font-size: 10px;
             cursor: pointer;
             transition: all 0.15s ease;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .eye-btn .tee {
+            font-size: 0.32px;
+            pointer-events: none;
         }
 
         .eye-btn:hover {
@@ -338,15 +347,7 @@
 
             <div class="field">
                 <span class="panel-title">Eyes</span>
-                <div class="eyes-grid" id="eyesGrid">
-                    <button class="eye-btn active" data-eye="normal">normal</button>
-                    <button class="eye-btn" data-eye="happy">happy</button>
-                    <button class="eye-btn" data-eye="angry">angry</button>
-                    <button class="eye-btn" data-eye="pain">pain</button>
-                    <button class="eye-btn" data-eye="surprise">surprise</button>
-                    <button class="eye-btn" data-eye="dead">dead</button>
-                    <button class="eye-btn" data-eye="blink">blink</button>
-                </div>
+                <div class="eyes-grid" id="eyesGrid"></div>
             </div>
 
             <div class="field">
@@ -458,7 +459,19 @@
         });
 
         // Eyes
-        document.getElementById('eyesGrid').addEventListener('click', (e) => {
+        const eyeTypes = ['normal', 'happy', 'angry', 'pain', 'surprise', 'dead', 'blink'];
+        const elEyesGrid = document.getElementById('eyesGrid');
+        const skinUrl = 'https://skins.scrumplex.net/skin/pinky.png';
+
+        eyeTypes.forEach((eye, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'eye-btn' + (i === 0 ? ' active' : '');
+            btn.dataset.eye = eye;
+            btn.innerHTML = `<div class="tee" data-skin="${skinUrl}" data-eyes="${eye}" data-follow-mouse="true"></div><span>${eye}</span>`;
+            elEyesGrid.appendChild(btn);
+        });
+
+        elEyesGrid.addEventListener('click', (e) => {
             const btn = e.target.closest('.eye-btn');
             if (!btn) return;
             document.querySelectorAll('.eye-btn').forEach(b => b.classList.remove('active'));
