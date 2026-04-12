@@ -1,6 +1,10 @@
 <p align="center"><b>tee-skin-renderer</b> - Teeworlds / DDNet skin renderer for you HTML pages</p>
 
 <p align="center">
+    <a href="https://tee-community.github.io/tee-skin-renderer/demo.umd.html"><b>Live Demo</b></a>
+</p>
+
+<p align="center">
     <a href="https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.js">
         <img
             src="https://img.badgesize.io/https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.js?compression=gzip&style=flat-square"
