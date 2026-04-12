@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TeeSkinRenderer</title>
+    <link rel="icon" type="image/svg+xml" href="./tee.svg" />
+    <link href="./tee-skin-renderer.css" rel="stylesheet">
+    <link rel="preload" as="image" href="https://skins.ddnet.org/skin/community/default.png">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0f1117;
+            color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app {
+            display: flex;
+            gap: 48px;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .tee-area {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .tee-area .tee {
+            font-size: 1.8px;
+        }
+
+        .presets {
+            display: flex;
+            gap: 6px;
+        }
+
+        .preset {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            padding: 0;
+        }
+
+        .preset:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .preset.active {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .preset .tee {
+            font-size: 0.38px;
+            pointer-events: none;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 320px;
+        }
+
+        .panel-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #6366f1;
+            margin-bottom: 4px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #888;
+        }
+
+        .field-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 13px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #6366f1;
+        }
+
+        input[type="text"].input-color {
+            width: 120px;
+            text-align: center;
+        }
+
+        .color-preview {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.15s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        select:focus {
+            border-color: #6366f1;
+        }
+
+        .toggle-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 13px;
+            color: #888;
+            user-select: none;
+            flex: 1;
+        }
+
+        .toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .toggle.active {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+        }
+
+        .toggle input {
+            display: none;
+        }
+
+        .toggle-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #444;
+            transition: background 0.15s ease;
+        }
+
+        .toggle.active .toggle-dot {
+            background: #6366f1;
+        }
+
+        .eyes-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .eye-btn {
+            padding: 6px 0 2px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #888;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .eye-btn .tee {
+            font-size: 0.32px;
+            pointer-events: none;
+        }
+
+        .eye-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0e0e0;
+        }
+
+        .eye-btn.active {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+        }
+
+        .direction-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dir-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #888;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+
+        .dir-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .dir-btn.active {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+        }
+
+        @media (max-width: 700px) {
+            .app {
+                flex-direction: column;
+                padding: 24px;
+                gap: 32px;
+            }
+            .panel {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="stage">
+            <div class="tee-area">
+                <div
+                    id="tee"
+                    class="tee"
+                    data-skin="https://skins.ddnet.org/skin/community/pinky.png"
+                    data-color-body="5498880"
+                    data-color-feet="3079936">
+                </div>
+            </div>
+            <div class="presets" id="presets"></div>
+        </div>
+
+        <div class="panel">
+            <div class="field">
+                <span class="panel-title">Skin</span>
+                <input
+                    id="skinUrl"
+                    type="text"
+                    value="https://skins.ddnet.org/skin/community/pinky.png"
+                    placeholder="Skin URL..."
+                    spellcheck="false"
+                />
+            </div>
+
+            <div class="field">
+                <span class="panel-title">Colors</span>
+                <div class="field-row">
+                    <span class="field-label" style="width: 36px;">Body</span>
+                    <input id="colorBody" class="input-color" type="text" value="5498880" />
+                    <div id="colorBodyPreview" class="color-preview"></div>
+                </div>
+                <div class="field-row">
+                    <span class="field-label" style="width: 36px;">Feet</span>
+                    <input id="colorFeet" class="input-color" type="text" value="3079936" />
+                    <div id="colorFeetPreview" class="color-preview"></div>
+                </div>
+            </div>
+
+            <div class="field">
+                <span class="panel-title">Eyes</span>
+                <div class="eyes-grid" id="eyesGrid"></div>
+            </div>
+
+            <div class="field">
+                <span class="panel-title">Direction</span>
+                <div class="direction-btns">
+                    <button class="dir-btn" data-dir="left">&#8592;</button>
+                    <button class="dir-btn active" data-dir="right">&#8594;</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <span class="panel-title">Options</span>
+                <div class="toggle-row">
+                    <label class="toggle" id="toggleFat">
+                        <input id="fat" type="checkbox" />
+                        <span class="toggle-dot"></span>
+                        Fat
+                    </label>
+                    <label class="toggle" id="toggleFollow">
+                        <input id="followMouse" type="checkbox" />
+                        <span class="toggle-dot"></span>
+                        Follow mouse
+                    </label>
+                    <label class="toggle" id="toggleAfk">
+                        <input id="afk" type="checkbox" />
+                        <span class="toggle-dot"></span>
+                        AFK
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="https://github.com/tee-community/tee-skin-renderer" target="_blank" style="position:fixed;bottom:20px;right:20px;display:flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#a5b4fc;font-size:14px;font-weight:500;text-decoration:none;transition:all 0.15s;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;" onmouseover="this.style.background='rgba(99,102,241,0.12)';this.style.borderColor='rgba(99,102,241,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.06)';this.style.borderColor='rgba(255,255,255,0.1)'"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+
+    <script src="./tee-skin-renderer.umd.js"></script>
+    <script>
+        const elTee = document.getElementById('tee');
+        const elSkinUrl = document.getElementById('skinUrl');
+        const elColorBody = document.getElementById('colorBody');
+        const elColorFeet = document.getElementById('colorFeet');
+        const elColorBodyPreview = document.getElementById('colorBodyPreview');
+        const elColorFeetPreview = document.getElementById('colorFeetPreview');
+
+        const presets = [
+            { skin: 'pinky.png', body: 5498880, feet: 3079936, custom: true },
+            { skin: 'kintaro_2.png', body: 53063, feet: 524159, custom: true },
+            { skin: 'UniCute.png', custom: false },
+            { skin: 'pinky.png', body: 16768387, feet: 16777215, custom: true },
+            { skin: 'Catnoa.png', custom: false },
+            { skin: 'Apish%20Coke%20Carrey.png', custom: false },
+        ];
+
+        function teeColorToRgb(value) {
+            const h = ((value >> 16) & 0xff) * 360 / 255;
+            const s = ((value >> 8) & 0xff) * 100 / 255;
+            const l = ((value & 0xff) / 2 + 128) * 100 / 255;
+            const hNorm = h / 360, sNorm = s / 100, lNorm = l / 100;
+            if (sNorm === 0) { const v = Math.round(lNorm * 255); return `rgb(${v},${v},${v})`; }
+            const t2 = lNorm < 0.5 ? lNorm * (1 + sNorm) : lNorm + sNorm - lNorm * sNorm;
+            const t1 = 2 * lNorm - t2;
+            const rgb = [0, 0, 0];
+            for (let i = 0; i < 3; i++) {
+                let t3 = hNorm + 1/3 * -(i - 1);
+                if (t3 < 0) t3++; if (t3 > 1) t3--;
+                let val;
+                if (6 * t3 < 1) val = t1 + (t2 - t1) * 6 * t3;
+                else if (2 * t3 < 1) val = t2;
+                else if (3 * t3 < 2) val = t1 + (t2 - t1) * (2/3 - t3) * 6;
+                else val = t1;
+                rgb[i] = Math.round(val * 255);
+            }
+            return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+        }
+
+        function updateColorPreviews() {
+            elColorBodyPreview.style.background = teeColorToRgb(parseInt(elColorBody.value) || 0);
+            elColorFeetPreview.style.background = teeColorToRgb(parseInt(elColorFeet.value) || 0);
+        }
+        updateColorPreviews();
+
+        // Presets
+        const elPresets = document.getElementById('presets');
+        presets.forEach((p, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'preset' + (i === 0 ? ' active' : '');
+            const attrs = p.custom ? ` data-color-body="${p.body}" data-color-feet="${p.feet}"` : ' data-use-custom-color="false"';
+            btn.innerHTML = `<div class="tee" data-skin="https://skins.ddnet.org/skin/community/${p.skin}"${attrs} data-follow-mouse="true"></div>`;
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.preset').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const url = `https://skins.ddnet.org/skin/community/${p.skin}`;
+                elSkinUrl.value = url;
+                elTee.tee.skinUrl = url;
+                elTee.tee.useCustomColor = p.custom;
+                if (p.custom) {
+                    elColorBody.value = p.body;
+                    elColorFeet.value = p.feet;
+                    elTee.tee.colorBody = p.body;
+                    elTee.tee.colorFeet = p.feet;
+                }
+                updateColorPreviews();
+            });
+            elPresets.appendChild(btn);
+        });
+
+        // Skin URL
+        elSkinUrl.addEventListener('change', () => { elTee.tee.skinUrl = elSkinUrl.value; });
+
+        // Colors
+        ['keyup', 'change'].forEach(e => {
+            elColorBody.addEventListener(e, () => {
+                elTee.tee.colorBody = parseInt(elColorBody.value) || 0;
+                updateColorPreviews();
+            });
+            elColorFeet.addEventListener(e, () => {
+                elTee.tee.colorFeet = parseInt(elColorFeet.value) || 0;
+                updateColorPreviews();
+            });
+        });
+
+        // Eyes
+        const eyeTypes = ['normal', 'happy', 'angry', 'pain', 'surprise', 'dead', 'blink'];
+        const elEyesGrid = document.getElementById('eyesGrid');
+        const skinUrl = 'https://skins.ddnet.org/skin/community/pinky.png';
+
+        eyeTypes.forEach((eye, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'eye-btn' + (i === 0 ? ' active' : '');
+            btn.dataset.eye = eye;
+            btn.innerHTML = `<div class="tee" data-skin="${skinUrl}" data-eyes="${eye}" data-follow-mouse="true"></div><span>${eye}</span>`;
+            elEyesGrid.appendChild(btn);
+        });
+
+        elEyesGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.eye-btn');
+            if (!btn) return;
+            document.querySelectorAll('.eye-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            elTee.tee.eyes = btn.dataset.eye;
+        });
+
+        // Direction
+        document.querySelectorAll('.dir-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                elTee.tee.direction = btn.dataset.dir;
+            });
+        });
+
+        // Fat
+        const elToggleFat = document.getElementById('toggleFat');
+        document.getElementById('fat').addEventListener('change', function () {
+            elTee.tee.fat = this.checked;
+            elToggleFat.classList.toggle('active', this.checked);
+        });
+
+        // AFK
+        const elToggleAfk = document.getElementById('toggleAfk');
+        document.getElementById('afk').addEventListener('change', function () {
+            elTee.tee.afk = this.checked;
+            elToggleAfk.classList.toggle('active', this.checked);
+        });
+
+        // Follow mouse
+        const elToggleFollow = document.getElementById('toggleFollow');
+        document.getElementById('followMouse').addEventListener('change', function () {
+            elTee.tee.followMouse = this.checked;
+            elToggleFollow.classList.toggle('active', this.checked);
+        });
+    </script>
+</body>
+
+</html>

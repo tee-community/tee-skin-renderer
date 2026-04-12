@@ -32,10 +32,18 @@ export default defineConfig({
         {
             name: 'emit-index',
             generateBundle() {
+                const demoUmd = fs.readFileSync(resolve(__dirname, 'demo/demo.umd.html'), 'utf-8');
+
                 this.emitFile({
                     type: 'asset',
                     fileName: 'demo.umd.html',
-                    source: fs.readFileSync(resolve(__dirname, 'demo/demo.umd.html'), 'utf-8'),
+                    source: demoUmd,
+                });
+
+                this.emitFile({
+                    type: 'asset',
+                    fileName: 'index.html',
+                    source: demoUmd,
                 });
 
                 this.emitFile({
