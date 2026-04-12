@@ -18,6 +18,52 @@ export function convertTeeColorToRgba(
     return convertHslToRgba(convertTeeColorToHsl(value));
 }
 
+/**
+ * Compute the most common non-zero greyscale value in a region of image data.
+ * Matches DDNet's OrgWeight calculation from skins.cpp.
+ */
+export function computeOrgWeight(
+    data: Uint8ClampedArray,
+    width: number,
+    region: { x: number; y: number; w: number; h: number },
+): number {
+    const freq = new Uint32Array(256);
+
+    for (let y = region.y; y < region.y + region.h; y++) {
+        for (let x = region.x; x < region.x + region.w; x++) {
+            const offset = (y * width + x) * 4;
+            if (data[offset + 3] > 128) {
+                const grey = Math.round((data[offset] + data[offset + 1] + data[offset + 2]) / 3);
+                freq[grey]++;
+            }
+        }
+    }
+
+    let orgWeight = 1;
+    for (let i = 1; i < 256; i++) {
+        if (freq[i] > freq[orgWeight]) {
+            orgWeight = i;
+        }
+    }
+
+    return orgWeight;
+}
+
+/**
+ * Remap a greyscale value using DDNet's algorithm.
+ * Values <= orgWeight map to 0..newWeight, values > orgWeight map to newWeight..255.
+ */
+export function remapGreyscale(
+    value: number,
+    orgWeight: number,
+    newWeight: number = 192,
+): number {
+    if (value <= orgWeight) {
+        return (value / orgWeight) * newWeight;
+    }
+    return ((value - orgWeight) / (255 - orgWeight)) * (255 - newWeight) + newWeight;
+}
+
 export function convertHslToRgba(
     hsl: ColorHsl,
     a: number = 255,

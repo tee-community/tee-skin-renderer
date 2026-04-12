@@ -3,6 +3,8 @@ import { resolve } from 'path';
 import fs from 'fs';
 import dts from 'vite-plugin-dts';
 
+const __dirname = import.meta.dirname;
+
 export default defineConfig({
     build: {
         copyPublicDir: true,
@@ -14,7 +16,7 @@ export default defineConfig({
             fileName: 'tee-skin-renderer',
             formats: ['es', 'umd'],
         },
-        rollupOptions: {
+        rolldownOptions: {
             output: {
                 entryFileNames: 'tee-skin-renderer.[format].js',
                 assetFileNames: 'tee-skin-renderer.[ext]',

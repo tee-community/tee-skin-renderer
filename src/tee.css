@@ -75,12 +75,12 @@
 }
 
 .tee__eyes::before {
-    left: calc(-16em - 4.8em * 1.4);
+    left: calc(-16em - 7.2em);
     transform: scale(1.2, 1.2);
 }
 
 .tee__eyes::after {
-    left: calc(-16em + 4.8em * 1.4);
+    left: calc(-16em + 7.2em);
     transform: scale(-1.2, 1.2);
 }
 
@@ -116,6 +116,16 @@
     background-position: -224em 32em;
 }
 
+.tee[data-eyes="blink"] .tee__eyes::before,
+.tee[data-eyes="blink"] .tee__eyes::after {
+    background-position: -64em 32em;
+    transform: scale(1.2, 0.45);
+}
+
+.tee[data-eyes="blink"] .tee__eyes::after {
+    transform: scale(-1.2, 0.45);
+}
+
 /*      */
 /* FEET */
 /*      */
@@ -136,12 +146,12 @@
     background-position: -192em -64em;
 }
 
-.tee__foot_left {
-    transform: translate(calc(-50% - 10.5em), calc(-50% + 15em)) scale(1.43, 1.45);
+.tee__foot_back {
+    transform: translate(calc(-50% - 10.5em), calc(-50% + 15em)) scale(1.5);
 }
 
-.tee__foot_right {
-    transform: translate(calc(-50% + 10.5em), calc(-50% + 15em)) scale(1.43, 1.45);
+.tee__foot_front {
+    transform: translate(calc(-50% + 10.5em), calc(-50% + 15em)) scale(1.5);
 }
 
 /*       */
@@ -149,47 +159,66 @@
 /*       */
 
 /*
-        0 - body outline
-        1 - foot right outline
-        1 - foot left outline
-        2 - foot left
-        3 - body
-        4 - eyes
-        5 - foot right
+        DDNet render order (RenderTee6):
+        0 - back foot outline
+        1 - body outline
+        2 - front foot outline
+        3 - back foot fill
+        4 - body fill
+        5 - eyes
+        6 - front foot fill
     */
 
-/* foot left */
-.tee__foot_left {
-    z-index: 2;
-}
-
-/* foot left outline */
-.tee__foot_left.tee__foot_outline {
-    z-index: 1;
-}
-
-/* foot right */
-.tee__foot_right {
-    z-index: 5;
-}
-
-/* foot right outline */
-.tee__foot_right.tee__foot_outline {
-    z-index: 1;
+/* back foot outline */
+.tee__foot_back.tee__foot_outline {
+    z-index: 0;
 }
 
 /* body outline */
 .tee::before {
-    z-index: 0;
+    z-index: 1;
 }
 
-/* body */
-.tee::after {
+/* front foot outline */
+.tee__foot_front.tee__foot_outline {
+    z-index: 2;
+}
+
+/* back foot fill */
+.tee__foot_back {
     z-index: 3;
 }
 
-.tee__eyes {
+/* body fill */
+.tee::after {
     z-index: 4;
+}
+
+/* eyes */
+.tee__eyes {
+    z-index: 5;
+}
+
+/* front foot fill */
+.tee__foot_front {
+    z-index: 6;
+}
+
+/*           */
+/* DIRECTION */
+/*           */
+
+.tee_facing-left {
+    transform: scaleX(-1);
+}
+
+/*     */
+/* FAT */
+/*     */
+
+.tee_fat::before,
+.tee_fat::after {
+    transform: translate(-50%, calc(-50% - 6em)) scale(1.3);
 }
 
 /*        */

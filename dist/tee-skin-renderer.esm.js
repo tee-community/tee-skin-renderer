@@ -1,0 +1,452 @@
+//#region \0rolldown/runtime.js
+var e = Object.defineProperty, t = (t, n) => {
+	let r = {};
+	for (var i in t) e(r, i, {
+		get: t[i],
+		enumerable: !0
+	});
+	return n || e(r, Symbol.toStringTag, { value: "Module" }), r;
+}, n = /* @__PURE__ */ t({
+	computeOrgWeight: () => a,
+	convertHslToRgba: () => s,
+	convertTeeColorToHsl: () => r,
+	convertTeeColorToRgba: () => i,
+	remapGreyscale: () => o
+});
+function r(e) {
+	return [
+		(e >> 16 & 255) * 360 / 255,
+		(e >> 8 & 255) * 100 / 255,
+		((e & 255) / 2 + 128) * 100 / 255
+	];
+}
+function i(e) {
+	return s(r(e));
+}
+function a(e, t, n) {
+	let r = new Uint32Array(256);
+	for (let i = n.y; i < n.y + n.h; i++) for (let a = n.x; a < n.x + n.w; a++) {
+		let n = (i * t + a) * 4;
+		if (e[n + 3] > 128) {
+			let t = Math.round((e[n] + e[n + 1] + e[n + 2]) / 3);
+			r[t]++;
+		}
+	}
+	let i = 1;
+	for (let e = 1; e < 256; e++) r[e] > r[i] && (i = e);
+	return i;
+}
+function o(e, t, n = 192) {
+	return e <= t ? e / t * n : (e - t) / (255 - t) * (255 - n) + n;
+}
+function s(e, t = 255) {
+	let n = e[0] / 360, r = e[1] / 100, i = e[2] / 100, a, o, s;
+	if (r === 0) return s = i * 255, [
+		s,
+		s,
+		s,
+		t
+	];
+	a = i < .5 ? i * (1 + r) : i + r - i * r;
+	let c = 2 * i - a, l = [
+		0,
+		0,
+		0,
+		t
+	];
+	for (let e = 0; e < 3; e++) o = n + 1 / 3 * -(e - 1), o < 0 && o++, o > 1 && o--, s = 6 * o < 1 ? c + (a - c) * 6 * o : 2 * o < 1 ? a : 3 * o < 2 ? c + (a - c) * (2 / 3 - o) * 6 : c, l[e] = s * 255;
+	return l;
+}
+//#endregion
+//#region src/atlas.ts
+var c = /* @__PURE__ */ t({
+	ATLAS_HEIGHT: () => 128,
+	ATLAS_WIDTH: () => 256,
+	BODY_COLOR_REGION: () => C,
+	BODY_OFFSET_Y: () => -6,
+	EYE_SCALE: () => w,
+	EYE_SEPARATION: () => T,
+	FAT_BODY_SCALE: () => k,
+	FOOT_COLOR_REGION: () => S,
+	FOOT_OFFSET_X: () => O,
+	FOOT_OFFSET_Y: () => 15,
+	FOOT_SCALE_X: () => E,
+	FOOT_SCALE_Y: () => D,
+	GRID_CELL: () => 32,
+	HAND_SCALE: () => p,
+	SPRITE_BODY: () => l,
+	SPRITE_BODY_OUTLINE: () => u,
+	SPRITE_EYE_ANGRY: () => h,
+	SPRITE_EYE_DEAD: () => v,
+	SPRITE_EYE_HAPPY: () => _,
+	SPRITE_EYE_NORMAL: () => m,
+	SPRITE_EYE_PAIN: () => g,
+	SPRITE_EYE_SURPRISE: () => y,
+	SPRITE_FOOT: () => b,
+	SPRITE_FOOT_OUTLINE: () => x,
+	SPRITE_HAND: () => d,
+	SPRITE_HAND_OUTLINE: () => f,
+	TEE_BASE_SIZE: () => 96
+}), l = {
+	x: 0,
+	y: 0,
+	w: 96,
+	h: 96
+}, u = {
+	x: 96,
+	y: 0,
+	w: 96,
+	h: 96
+}, d = {
+	x: 192,
+	y: 0,
+	w: 32,
+	h: 32
+}, f = {
+	x: 224,
+	y: 0,
+	w: 32,
+	h: 32
+}, p = .9375, m = {
+	x: 64,
+	y: 96,
+	w: 32,
+	h: 32
+}, h = {
+	x: 96,
+	y: 96,
+	w: 32,
+	h: 32
+}, g = {
+	x: 128,
+	y: 96,
+	w: 32,
+	h: 32
+}, _ = {
+	x: 160,
+	y: 96,
+	w: 32,
+	h: 32
+}, v = {
+	x: 192,
+	y: 96,
+	w: 32,
+	h: 32
+}, y = {
+	x: 224,
+	y: 96,
+	w: 32,
+	h: 32
+}, b = {
+	x: 192,
+	y: 32,
+	w: 64,
+	h: 32
+}, x = {
+	x: 192,
+	y: 64,
+	w: 64,
+	h: 32
+}, S = {
+	xStart: 6 / 8,
+	xEnd: 1,
+	yStart: 1 / 4,
+	yEnd: 3 / 4
+}, C = {
+	xStart: 0,
+	xEnd: 3 / 8,
+	yStart: 0,
+	yEnd: 1 / 4
+}, w = 1.2, T = 7.2, E = 1.5, D = 1.5, O = 10.5, k = 1.3, A = /* @__PURE__ */ t({
+	debounce: () => j,
+	domReady: () => P,
+	loadImage: () => N,
+	throttle: () => M
+});
+function j(e, t, n = !1) {
+	let r;
+	return function() {
+		let i = this, a = arguments;
+		clearTimeout(r), n && !r && e.apply(i, a), r = setTimeout(function() {
+			r = void 0, n || e.apply(i, a);
+		}, t);
+	};
+}
+function M(e, t = 300) {
+	let n, r, i;
+	return function() {
+		let a = this, o = arguments;
+		n ? (clearTimeout(r), r = setTimeout(() => {
+			Date.now() - i >= t && (e.apply(a, o), i = Date.now());
+		}, Math.max(t - (Date.now() - i), 0))) : (e.apply(a, o), i = Date.now(), n = !0);
+	};
+}
+function N(e) {
+	return new Promise((t, n) => {
+		let r = new Image();
+		r.crossOrigin = "anonymous", r.addEventListener("error", n), r.addEventListener("load", (e) => {
+			Promise.resolve(t(e.target)).then(() => {
+				r.remove();
+			});
+		}), r.src = e;
+	});
+}
+function P(e, ...t) {
+	t = t === void 0 ? [] : t, document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", () => {
+		e(...t);
+	}) : e(...t);
+}
+//#endregion
+//#region src/tee.ts
+var F = /* @__PURE__ */ t({
+	TeeRenderer: () => I,
+	createAsync: () => B,
+	createContainerElements: () => L,
+	createRendererAsync: () => R,
+	initializeAsync: () => z
+}), I = class {
+	_container;
+	_eyes;
+	_direction;
+	_fat;
+	_colorBody;
+	_colorFeet;
+	_useCustomColor;
+	_followMouseFn = null;
+	_skinUrl;
+	_skinBitmap = null;
+	_skinLoading = !1;
+	_skinLoadingPromise = null;
+	_skinLoadedCallback = null;
+	_offscreen = null;
+	_offscreenContext = null;
+	_image = null;
+	_currentObjectUrl = null;
+	_debounceUpdateTeeImage;
+	constructor(e, t) {
+		if (e.tee !== void 0) throw Error("TeeRenderer already initialized on this container");
+		Object.defineProperty(e, "tee", {
+			value: this,
+			writable: !1
+		}), this._container = e, this._colorBody = t.colorBody, this._colorFeet = t.colorFeet, this._useCustomColor = t.useCustomColor === void 0 ? t.colorBody !== void 0 || t.colorFeet !== void 0 : t.useCustomColor, this._eyes = t.eyes ?? "normal", this._direction = t.direction ?? "right", this._fat = t.fat ?? !1, this._skinUrl = t.skinUrl, this._direction === "left" && this._container.classList.add("tee_facing-left"), this._fat && this._container.classList.add("tee_fat"), this._container.classList.add("tee_initialized"), this._container.classList.remove("tee_initializing"), this._debounceUpdateTeeImage = j(this.updateTeeImage, 10), this.addEventListener("tee:rendered", () => {
+			this._container.classList.add("tee_rendered");
+		}, { once: !0 }), this.followMouse = t.followMouse === !0, this.loadSkin(this._skinUrl, !1);
+	}
+	get container() {
+		return this._container;
+	}
+	get colorBody() {
+		return this._colorBody;
+	}
+	set colorBody(e) {
+		e === void 0 && delete this._container.dataset.colorBody, this._colorBody = Number(e), this.update();
+	}
+	get colorBodyHsl() {
+		return this._colorBody === void 0 ? void 0 : r(this._colorBody);
+	}
+	get colorBodyRgba() {
+		return this._colorBody === void 0 ? void 0 : i(this._colorBody);
+	}
+	get colorFeet() {
+		return this._colorFeet;
+	}
+	set colorFeet(e) {
+		e === void 0 && delete this._container.dataset.colorFeet, this._colorFeet = Number(e), this.update();
+	}
+	get colorFeetHsl() {
+		return this._colorFeet === void 0 ? void 0 : r(this._colorFeet);
+	}
+	get colorFeetRgba() {
+		return this._colorFeet === void 0 ? void 0 : i(this._colorFeet);
+	}
+	get useCustomColor() {
+		return this._useCustomColor;
+	}
+	set useCustomColor(e) {
+		this._container.dataset.useCustomColor = e ? "true" : "false", this._useCustomColor = e, this.update();
+	}
+	get eyes() {
+		return this._eyes;
+	}
+	set eyes(e) {
+		this._eyes !== e && (this._eyes = e, this._container.dataset.eyes = e);
+	}
+	get direction() {
+		return this._direction;
+	}
+	set direction(e) {
+		this._direction !== e && (this._direction = e, this._container.classList.toggle("tee_facing-left", e === "left"));
+	}
+	get fat() {
+		return this._fat;
+	}
+	set fat(e) {
+		this._fat !== e && (this._fat = e, this._container.classList.toggle("tee_fat", e));
+	}
+	get followMouse() {
+		return this._followMouseFn !== null;
+	}
+	set followMouse(e) {
+		this.followMouse !== e && (e ? (this._followMouseFn = this.mouseFollowThrottleCallbackFactory(), document.addEventListener("mousemove", this._followMouseFn), this._container.dataset.followMouse = "true") : (document.removeEventListener("mousemove", this._followMouseFn), this._followMouseFn = null, this._container.dataset.followMouse = "false"));
+	}
+	mouseFollowThrottleCallbackFactory() {
+		return M((e) => {
+			let t = this._container.getBoundingClientRect(), n = e.clientX - (t.x + t.width / 2), r = e.clientY - (t.y + t.height / 2 - t.height * .125), i = Math.atan2(r, n), a = this._direction === "left" ? -1 : 1, o = Math.cos(i) * .125 * t.width * a, s = Math.sin(i) * .1 * t.height;
+			this._container.eyes.style.transform = `translate(${o.toFixed(4)}px, ${s.toFixed(4)}px)`;
+		}, 20);
+	}
+	get skinUrl() {
+		return this._skinUrl;
+	}
+	set skinUrl(e) {
+		this.loadSkin(e, !0);
+	}
+	get skinBitmap() {
+		return this._skinBitmap;
+	}
+	setSkinVariableValue(e) {
+		this._container.style.setProperty("--skin", e);
+	}
+	updateTeeImage() {
+		if (this._skinBitmap !== null) {
+			if (this._offscreen === null ? (this._offscreen = new OffscreenCanvas(this._skinBitmap.width, this._skinBitmap.height), this._offscreenContext = this._offscreen.getContext("2d", { willReadFrequently: !0 })) : ((this._offscreen.width !== this._skinBitmap.width || this._offscreen.height !== this._skinBitmap.height) && (this._offscreen.width = this._skinBitmap.width, this._offscreen.height = this._skinBitmap.height), this._offscreenContext.clearRect(0, 0, this._offscreen.width, this._offscreen.height)), this._offscreenContext.drawImage(this._skinBitmap, 0, 0), this.useCustomColor) {
+				let e = this.colorBodyRgba || i(0), t = this.colorFeetRgba || i(0), n = this._offscreenContext.getImageData(0, 0, this._offscreen.width, this._offscreen.height), r = n.data, s = this._offscreen.width, c = this._offscreen.height, l = 6 / 8 * s, u = s, d = 1 / 4 * c, f = 3 / 4 * c, p = a(r, s, {
+					x: 0,
+					y: 0,
+					w: Math.floor(3 / 8 * s),
+					h: Math.floor(1 / 4 * c)
+				});
+				for (let n = 0; n < r.length; n += 4) {
+					let i = n / 4 % s, a = Math.floor(n / 4 / s), c = o((r[n] + r[n + 1] + r[n + 2]) / 3, p), m = i >= l && i < u && a >= d && a < f ? t : e;
+					r[n] = c * m[0] / 255, r[n + 1] = c * m[1] / 255, r[n + 2] = c * m[2] / 255, r[n + 3] = r[n + 3] * m[3] / 255;
+				}
+				this._offscreenContext.putImageData(n, 0, 0);
+			}
+			this._offscreen.convertToBlob().then((e) => {
+				let t = URL.createObjectURL(e), n = this._image ||= new Image();
+				n.onload = () => {
+					this._currentObjectUrl && URL.revokeObjectURL(this._currentObjectUrl), this._currentObjectUrl = t, this.setSkinVariableValue(`url('${t}')`), this.dispatchEvent("tee:rendered");
+				}, n.src = t;
+			});
+		}
+	}
+	dispatchEvent(...e) {
+		this._container.dispatchEvent(new CustomEvent(e[0], { detail: {
+			tee: this,
+			payload: e[1] || void 0
+		} }));
+	}
+	addEventListener(e, t, n) {
+		this._container.addEventListener(e, t, n);
+	}
+	removeEventListener(e, t, n) {
+		this._container.removeEventListener(e, t, n);
+	}
+	update() {
+		this._debounceUpdateTeeImage();
+	}
+	renderToCanvas(e, t) {
+		if (!this._skinBitmap) return;
+		let n = t?.size ?? 96, r = t?.direction ?? this._direction, s = t?.eyes ?? this._eyes, c = n / 96, d = e.getContext("2d");
+		if (!d) return;
+		e.width = n, e.height = n, d.clearRect(0, 0, n, n);
+		let f = new OffscreenCanvas(this._skinBitmap.width, this._skinBitmap.height), p = f.getContext("2d", { willReadFrequently: !0 });
+		if (p.drawImage(this._skinBitmap, 0, 0), this.useCustomColor) {
+			let e = this.colorBodyRgba || i(0), t = this.colorFeetRgba || i(0), n = p.getImageData(0, 0, f.width, f.height), r = n.data, s = f.width, c = f.height, l = s * S.xStart, u = s * S.xEnd, d = c * S.yStart, m = c * S.yEnd, h = a(r, s, {
+				x: 0,
+				y: 0,
+				w: Math.floor(s * C.xEnd),
+				h: Math.floor(c * C.yEnd)
+			});
+			for (let n = 0; n < r.length; n += 4) {
+				let i = n / 4 % s, a = Math.floor(n / 4 / s), c = o((r[n] + r[n + 1] + r[n + 2]) / 3, h), f = i >= l && i < u && a >= d && a < m ? t : e;
+				r[n] = c * f[0] / 255, r[n + 1] = c * f[1] / 255, r[n + 2] = c * f[2] / 255, r[n + 3] = r[n + 3] * f[3] / 255;
+			}
+			p.putImageData(n, 0, 0);
+		}
+		let k = this._skinBitmap.width / 256, A = this._skinBitmap.height / 128, j = n / 2, M = n / 2, N = M + -6 * c, P = r === "left" ? -1 : 1, F = (e, t, n, r, i, a = !1) => {
+			d.save(), d.translate(t, n), a && d.scale(-1, 1), d.drawImage(f, e.x * k, e.y * A, e.w * k, e.h * A, -r / 2, -i / 2, r, i), d.restore();
+		}, I = l.w * c, L = b.w * E * c, R = b.h * D * c, z = O * c * P, B = 15 * c, V = {
+			normal: m,
+			angry: h,
+			pain: g,
+			happy: _,
+			dead: v,
+			surprise: y,
+			blink: m
+		}[s] ?? m, H = m.w * w * c, U = s === "blink" ? H * .375 : H, W = T * c * P, G = M - n * .125 + -6 * c;
+		F(u, j, N, I, I), F(x, j - z, M + B, L, R), F(b, j - z, M + B, L, R), F(l, j, N, I, I), F(V, j - W, G, H, U), F(V, j + W, G, H, U, !0), F(x, j + z, M + B, L, R), F(b, j + z, M + B, L, R);
+	}
+	destroy() {
+		this.followMouse = !1, this._currentObjectUrl &&= (URL.revokeObjectURL(this._currentObjectUrl), null), this._skinBitmap &&= (this._skinBitmap.close(), null), this._offscreen = null, this._offscreenContext = null, this._image = null, this._skinLoadedCallback = null, this.setSkinVariableValue(null), this._container.classList.remove("tee_initialized", "tee_rendered");
+	}
+	loadSkin(e, t) {
+		if (this._skinLoading) this._skinLoadedCallback = () => this.loadSkin(e, t);
+		else {
+			let n = (n) => {
+				this._skinLoadingPromise = null, this._skinLoading = !1, this.dispatchEvent("tee:skin-loaded", {
+					skin: e,
+					success: n
+				}), t && this.update(), this._skinLoadedCallback && this._skinLoadedCallback(), this._skinLoadedCallback = null;
+			};
+			this._skinLoading = !0, this._skinLoadedCallback = null, this._skinLoadingPromise = N(e).then(async (e) => {
+				this._skinBitmap = await createImageBitmap(e), this._skinUrl = e.src, this._container.dataset.skin = this._skinUrl, n(!0);
+			}).catch(() => {
+				console.warn(`TeeRenderer: cannot load skin '${e}'`), n(!1);
+			});
+		}
+		return this._skinLoadingPromise;
+	}
+};
+function L(e) {
+	let t = document.createElement("div"), n = document.createElement("div"), r = document.createElement("div"), i = document.createElement("div"), a = document.createElement("div");
+	t.classList.add("tee__eyes"), n.classList.add("tee__foot"), n.classList.add("tee__foot_back"), n.classList.add("tee__foot_outline"), r.classList.add("tee__foot"), r.classList.add("tee__foot_back"), i.classList.add("tee__foot"), i.classList.add("tee__foot_front"), i.classList.add("tee__foot_outline"), a.classList.add("tee__foot"), a.classList.add("tee__foot_front"), e.replaceChildren(), e.appendChild(t), e.appendChild(n), e.appendChild(r), e.appendChild(i), e.appendChild(a), e.eyes = t;
+}
+function R(e, t) {
+	return new Promise((n, r) => {
+		setTimeout(() => {
+			r();
+		}, 2e4);
+		try {
+			e.classList.add("tee_initializing"), L(e), new I(e, t).addEventListener("tee:skin-loaded", (e) => {
+				n(e.detail.tee);
+			}, { once: !0 });
+		} catch {
+			e.classList.remove("tee_initializing"), r();
+		}
+	});
+}
+async function z(e = !0) {
+	let t = [...document.querySelectorAll(".tee:not(.tee_initialized):not(.tee_initializing")].map((e) => R(e, {
+		colorBody: parseInt(e.dataset.colorBody) || void 0,
+		colorFeet: parseInt(e.dataset.colorFeet) || void 0,
+		useCustomColor: e.dataset.useCustomColor === void 0 ? void 0 : e.dataset.useCustomColor === "true",
+		eyes: e.dataset.eyes,
+		followMouse: e.dataset.followMouse === void 0 ? void 0 : e.dataset.followMouse === "true",
+		direction: e.dataset.direction,
+		fat: e.dataset.fat === void 0 ? void 0 : e.dataset.fat === "true",
+		skinUrl: e.dataset.skin
+	}));
+	e ? await Promise.allSettled(t).then((e) => {
+		e.forEach((e) => {
+			if (e.status === "fulfilled") try {
+				e.value.update();
+			} catch {}
+		});
+	}) : t.forEach((e) => {
+		e.then((e) => e.update());
+	});
+}
+async function B(e) {
+	let t = document.createElement("div");
+	e.colorBody !== void 0 && (t.dataset.colorBody = e.colorBody + ""), e.colorFeet !== void 0 && (t.dataset.colorFeet = e.colorFeet + ""), e.useCustomColor !== void 0 && (t.dataset.useCustomColor = e.useCustomColor ? "true" : "false"), e.eyes !== void 0 && (t.dataset.eyes = e.eyes), e.followMouse !== void 0 && (t.dataset.followMouse = e.followMouse ? "true" : "false"), e.direction !== void 0 && (t.dataset.direction = e.direction), e.fat !== void 0 && (t.dataset.fat = e.fat ? "true" : "false"), t.dataset.skin = e.skinUrl, t.classList.add("tee");
+	let n = await R(t, e);
+	return n.update(), n.container;
+}
+//#endregion
+//#region src/index.ts
+P(() => {
+	z();
+});
+//#endregion
+export { c as atlas, n as color, B as createAsync, A as helpers, z as init, F as renderer };

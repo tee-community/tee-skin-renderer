@@ -7,85 +7,486 @@
     <title>TeeSkinRenderer</title>
     <link rel="icon" type="image/svg+xml" href="./tee.svg" />
     <link href="./tee-skin-renderer.css" rel="stylesheet">
-    <link href="./demo.css" rel="stylesheet">
     <link rel="preload" as="image" href="https://skins.ddnet.org/skin/community/default.png">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0f1117;
+            color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app {
+            display: flex;
+            gap: 48px;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .tee-area {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .tee-area .tee {
+            font-size: 1.8px;
+        }
+
+        .presets {
+            display: flex;
+            gap: 6px;
+        }
+
+        .preset {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            padding: 0;
+        }
+
+        .preset:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .preset.active {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .preset .tee {
+            font-size: 0.38px;
+            pointer-events: none;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 320px;
+        }
+
+        .panel-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #6366f1;
+            margin-bottom: 4px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #888;
+        }
+
+        .field-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 13px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #6366f1;
+        }
+
+        input[type="text"].input-color {
+            width: 120px;
+            text-align: center;
+        }
+
+        .color-preview {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.15s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        select:focus {
+            border-color: #6366f1;
+        }
+
+        .toggle-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 13px;
+            color: #888;
+            user-select: none;
+            flex: 1;
+        }
+
+        .toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .toggle.active {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+        }
+
+        .toggle input {
+            display: none;
+        }
+
+        .toggle-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #444;
+            transition: background 0.15s ease;
+        }
+
+        .toggle.active .toggle-dot {
+            background: #6366f1;
+        }
+
+        .eyes-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .eye-btn {
+            padding: 8px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #888;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+
+        .eye-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0e0e0;
+        }
+
+        .eye-btn.active {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+        }
+
+        .direction-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dir-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #888;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+
+        .dir-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .dir-btn.active {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+        }
+
+        @media (max-width: 700px) {
+            .app {
+                flex-direction: column;
+                padding: 24px;
+                gap: 32px;
+            }
+            .panel {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="wrapper">
-        <div
-            id="tee"
-            class="tee"
-            data-skin="https://skins.scrumplex.net/skin/pinky.png"
-            data-color-body="5498880"
-            data-color-feet="3079936">
+    <div class="app">
+        <div class="stage">
+            <div class="tee-area">
+                <div
+                    id="tee"
+                    class="tee"
+                    data-skin="https://skins.scrumplex.net/skin/pinky.png"
+                    data-color-body="5498880"
+                    data-color-feet="3079936">
+                </div>
+            </div>
+            <div class="presets" id="presets"></div>
         </div>
 
-        <input
-            id="skinUrl"
-            class="input_skin"
-            type="text"
-            value="https://skins.scrumplex.net/skin/pinky.png"
-            placeholder="https://skins.scrumplex.net/skin/pinky.png"
-        />
+        <div class="panel">
+            <div class="field">
+                <span class="panel-title">Skin</span>
+                <input
+                    id="skinUrl"
+                    type="text"
+                    value="https://skins.scrumplex.net/skin/pinky.png"
+                    placeholder="Skin URL..."
+                    spellcheck="false"
+                />
+            </div>
 
-        <input
-            id="colorBody"
-            class="input_color"
-            type="text"
-            value="5498880"
-        />
+            <div class="field">
+                <span class="panel-title">Colors</span>
+                <div class="field-row">
+                    <span class="field-label" style="width: 36px;">Body</span>
+                    <input id="colorBody" class="input-color" type="text" value="5498880" />
+                    <div id="colorBodyPreview" class="color-preview"></div>
+                </div>
+                <div class="field-row">
+                    <span class="field-label" style="width: 36px;">Feet</span>
+                    <input id="colorFeet" class="input-color" type="text" value="3079936" />
+                    <div id="colorFeetPreview" class="color-preview"></div>
+                </div>
+            </div>
 
-        <input
-            id="colorFeet"
-            class="input_color"
-            type="text"
-            value="3079936"
-        />
+            <div class="field">
+                <span class="panel-title">Eyes</span>
+                <div class="eyes-grid" id="eyesGrid">
+                    <button class="eye-btn active" data-eye="normal">normal</button>
+                    <button class="eye-btn" data-eye="happy">happy</button>
+                    <button class="eye-btn" data-eye="angry">angry</button>
+                    <button class="eye-btn" data-eye="pain">pain</button>
+                    <button class="eye-btn" data-eye="surprise">surprise</button>
+                    <button class="eye-btn" data-eye="dead">dead</button>
+                    <button class="eye-btn" data-eye="blink">blink</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <span class="panel-title">Direction</span>
+                <div class="direction-btns">
+                    <button class="dir-btn" data-dir="left">&#8592;</button>
+                    <button class="dir-btn active" data-dir="right">&#8594;</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <span class="panel-title">Options</span>
+                <div class="toggle-row">
+                    <label class="toggle" id="toggleFat">
+                        <input id="fat" type="checkbox" />
+                        <span class="toggle-dot"></span>
+                        Fat
+                    </label>
+                    <label class="toggle" id="toggleFollow">
+                        <input id="followMouse" type="checkbox" />
+                        <span class="toggle-dot"></span>
+                        Follow mouse
+                    </label>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="./tee-skin-renderer.umd.js"></script>
     <script>
-        function resizable(elements, factor) {
-            var int = Number(factor) || 7.7;
-            var events = 'keyup,keypress,focus,blur,change'.split(',');
+        const elTee = document.getElementById('tee');
+        const elSkinUrl = document.getElementById('skinUrl');
+        const elColorBody = document.getElementById('colorBody');
+        const elColorFeet = document.getElementById('colorFeet');
+        const elColorBodyPreview = document.getElementById('colorBodyPreview');
+        const elColorFeetPreview = document.getElementById('colorFeetPreview');
 
-            elements.forEach((el) => {
-                function resize() {
-                    el.style.width = ((el.value.length + 1) * int) + 'px';
-                }
+        const presets = [
+            { skin: 'pinky.png', body: 5498880, feet: 3079936 },
+            { skin: 'brownbear.png', body: 5498880, feet: 3079936 },
+            { skin: 'nanami.png', body: 8061161, feet: 1769472 },
+            { skin: 'glowfox.png', body: 11388573, feet: 11354189 },
+            { skin: 'WolfTee.png', body: 5498880, feet: 3079936 },
+            { skin: 'coala_cammostripes.png', body: 5498880, feet: 3079936 },
+        ];
 
-                for (var i in events) {
-                    el.addEventListener(events[i], resize, false);
-                }
-
-                resize();
-            });
+        function teeColorToRgb(value) {
+            const h = ((value >> 16) & 0xff) * 360 / 255;
+            const s = ((value >> 8) & 0xff) * 100 / 255;
+            const l = ((value & 0xff) / 2 + 128) * 100 / 255;
+            const hNorm = h / 360, sNorm = s / 100, lNorm = l / 100;
+            if (sNorm === 0) { const v = Math.round(lNorm * 255); return `rgb(${v},${v},${v})`; }
+            const t2 = lNorm < 0.5 ? lNorm * (1 + sNorm) : lNorm + sNorm - lNorm * sNorm;
+            const t1 = 2 * lNorm - t2;
+            const rgb = [0, 0, 0];
+            for (let i = 0; i < 3; i++) {
+                let t3 = hNorm + 1/3 * -(i - 1);
+                if (t3 < 0) t3++; if (t3 > 1) t3--;
+                let val;
+                if (6 * t3 < 1) val = t1 + (t2 - t1) * 6 * t3;
+                else if (2 * t3 < 1) val = t2;
+                else if (3 * t3 < 2) val = t1 + (t2 - t1) * (2/3 - t3) * 6;
+                else val = t1;
+                rgb[i] = Math.round(val * 255);
+            }
+            return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
         }
 
-        resizable(document.querySelectorAll('input[type="text"]'), 7);
+        function updateColorPreviews() {
+            elColorBodyPreview.style.background = teeColorToRgb(parseInt(elColorBody.value) || 0);
+            elColorFeetPreview.style.background = teeColorToRgb(parseInt(elColorFeet.value) || 0);
+        }
+        updateColorPreviews();
 
-        const elInputSkin = document.getElementById('skinUrl');
-        const elInputColorBody = document.getElementById('colorBody');
-        const elInputColorFeet = document.getElementById('colorFeet');
-        const elTeeContainer = document.getElementById('tee');
+        // Presets
+        const elPresets = document.getElementById('presets');
+        presets.forEach((p, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'preset' + (i === 0 ? ' active' : '');
+            btn.innerHTML = `<div class="tee" data-skin="https://skins.scrumplex.net/skin/${p.skin}" data-color-body="${p.body}" data-color-feet="${p.feet}"></div>`;
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.preset').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const url = `https://skins.scrumplex.net/skin/${p.skin}`;
+                elSkinUrl.value = url;
+                elColorBody.value = p.body;
+                elColorFeet.value = p.feet;
+                elTee.tee.skinUrl = url;
+                elTee.tee.colorBody = p.body;
+                elTee.tee.colorFeet = p.feet;
+                updateColorPreviews();
+            });
+            elPresets.appendChild(btn);
+        });
 
-        ['keyup', 'change'].forEach((e) => {
-            elInputSkin.addEventListener(e, function () {
-                elTeeContainer.tee.skinUrl = this.value;
+        // Skin URL
+        elSkinUrl.addEventListener('change', () => { elTee.tee.skinUrl = elSkinUrl.value; });
+
+        // Colors
+        ['keyup', 'change'].forEach(e => {
+            elColorBody.addEventListener(e, () => {
+                elTee.tee.colorBody = parseInt(elColorBody.value) || 0;
+                updateColorPreviews();
+            });
+            elColorFeet.addEventListener(e, () => {
+                elTee.tee.colorFeet = parseInt(elColorFeet.value) || 0;
+                updateColorPreviews();
             });
         });
 
-        ['keyup', 'change'].forEach((e) => {
-            elInputColorBody.addEventListener(e, function () {
-                elTeeContainer.tee.colorBody = this.value;
+        // Eyes
+        document.getElementById('eyesGrid').addEventListener('click', (e) => {
+            const btn = e.target.closest('.eye-btn');
+            if (!btn) return;
+            document.querySelectorAll('.eye-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            elTee.tee.eyes = btn.dataset.eye;
+        });
+
+        // Direction
+        document.querySelectorAll('.dir-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                elTee.tee.direction = btn.dataset.dir;
             });
         });
 
-        ['keyup', 'change'].forEach((e) => {
-            elInputColorFeet.addEventListener(e, function () {
-                elTeeContainer.tee.colorFeet = this.value;
-            });
+        // Fat
+        const elToggleFat = document.getElementById('toggleFat');
+        document.getElementById('fat').addEventListener('change', function () {
+            elTee.tee.fat = this.checked;
+            elToggleFat.classList.toggle('active', this.checked);
+        });
+
+        // Follow mouse
+        const elToggleFollow = document.getElementById('toggleFollow');
+        document.getElementById('followMouse').addEventListener('change', function () {
+            elTee.tee.followMouse = this.checked;
+            elToggleFollow.classList.toggle('active', this.checked);
         });
     </script>
 </body>

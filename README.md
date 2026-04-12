@@ -51,30 +51,36 @@
 </head>
 
 <body>
-    <!-- ... -->
+    <!-- Basic skin -->
     <div
         class="tee"
         data-skin="https://skins.scrumplex.net/skin/pinky.png"
     >
     </div>
-    <!-- ... -->
-    <div
-        class="tee"
-        data-skin="https://skins.scrumplex.net/skin/pinky.png"
-        data-color-body="5498880"
-        data-color-feet="3079936"
-    >
-    </div>
-    <!-- ... -->
+
+    <!-- Custom colors -->
     <div
         class="tee"
         data-skin="https://skins.scrumplex.net/skin/pinky.png"
         data-color-body="5498880"
         data-color-feet="3079936"
-        data-use-custom-color="false"
     >
     </div>
-    <!-- ... -->
+
+    <!-- All options -->
+    <div
+        class="tee"
+        data-skin="https://skins.scrumplex.net/skin/pinky.png"
+        data-color-body="5498880"
+        data-color-feet="3079936"
+        data-use-custom-color="true"
+        data-eyes="happy"
+        data-direction="left"
+        data-fat="true"
+        data-follow-mouse="true"
+    >
+    </div>
+
     <script src="https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.js"></script>
 </body>
 ```
@@ -89,7 +95,15 @@ npm install tee-skin-renderer --save
 import { createAsync } from 'tee-skin-renderer';
 import 'tee-skin-renderer/css';
 
-createAsync({ skinUrl: 'https://skins.scrumplex.net/skin/pinky.png' }).then((container) => {
+createAsync({
+    skinUrl: 'https://skins.scrumplex.net/skin/pinky.png',
+    colorBody: 5498880,
+    colorFeet: 3079936,
+    eyes: 'happy',
+    direction: 'right',
+    fat: false,
+    followMouse: true,
+}).then((container) => {
     document.body.appendChild(container);
 });
 ```
@@ -99,6 +113,52 @@ import { init } from 'tee-skin-renderer';
 import 'tee-skin-renderer/css';
 
 init();
+```
+
+## Skin Format
+
+Supports standard Teeworlds/DDNet skin images with a **2:1 aspect ratio** at any resolution: 256x128, 512x256, 1024x512, 2048x1024, etc.
+
+## Data Attributes
+
+| Attribute | Type | Description |
+|---|---|---|
+| `data-skin` | `string` | Skin image URL (required) |
+| `data-color-body` | `number` | Body color in Teeworlds format |
+| `data-color-feet` | `number` | Feet color in Teeworlds format |
+| `data-use-custom-color` | `boolean` | Enable/disable custom coloring |
+| `data-eyes` | `string` | Eye type: `normal`, `angry`, `pain`, `happy`, `dead`, `surprise`, `blink` |
+| `data-direction` | `string` | Facing direction: `left`, `right` |
+| `data-fat` | `boolean` | Fat skin mode (1.3x body scale) |
+| `data-follow-mouse` | `boolean` | Eyes follow mouse cursor |
+
+## API
+
+### `createAsync(config): Promise<TeeContainer>`
+
+Creates a tee renderer programmatically.
+
+### `init(): Promise<void>`
+
+Auto-initializes all `.tee` elements with `data-skin` attribute.
+
+### TeeRenderer instance
+
+```js
+const container = await createAsync({ skinUrl: '...' });
+const tee = container.tee;
+
+tee.skinUrl = '...';           // Change skin
+tee.colorBody = 5498880;       // Set body color
+tee.colorFeet = 3079936;       // Set feet color
+tee.useCustomColor = true;     // Toggle custom colors
+tee.eyes = 'angry';            // Change eye type
+tee.direction = 'left';        // Change facing direction
+tee.fat = true;                // Toggle fat mode
+tee.followMouse = true;        // Toggle mouse following
+tee.update();                  // Force re-render
+tee.destroy();                 // Clean up resources
+tee.renderToCanvas(canvas);    // Render to canvas element
 ```
 
 ## License
