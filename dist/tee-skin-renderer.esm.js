@@ -209,6 +209,7 @@ var F = /* @__PURE__ */ t({
 	_eyes;
 	_direction;
 	_fat;
+	_afk;
 	_colorBody;
 	_colorFeet;
 	_useCustomColor;
@@ -228,7 +229,7 @@ var F = /* @__PURE__ */ t({
 		Object.defineProperty(e, "tee", {
 			value: this,
 			writable: !1
-		}), this._container = e, this._colorBody = t.colorBody, this._colorFeet = t.colorFeet, this._useCustomColor = t.useCustomColor === void 0 ? t.colorBody !== void 0 || t.colorFeet !== void 0 : t.useCustomColor, this._eyes = t.eyes ?? "normal", this._direction = t.direction ?? "right", this._fat = t.fat ?? !1, this._skinUrl = t.skinUrl, this._direction === "left" && this._container.classList.add("tee_facing-left"), this._fat && this._container.classList.add("tee_fat"), this._container.classList.add("tee_initialized"), this._container.classList.remove("tee_initializing"), this._debounceUpdateTeeImage = j(this.updateTeeImage, 10), this.addEventListener("tee:rendered", () => {
+		}), this._container = e, this._colorBody = t.colorBody, this._colorFeet = t.colorFeet, this._useCustomColor = t.useCustomColor === void 0 ? t.colorBody !== void 0 || t.colorFeet !== void 0 : t.useCustomColor, this._eyes = t.eyes ?? "normal", this._direction = t.direction ?? "right", this._fat = t.fat ?? !1, this._afk = t.afk ?? !1, this._skinUrl = t.skinUrl, this._direction === "left" && this._container.classList.add("tee_facing-left"), this._fat && this._container.classList.add("tee_fat"), this._afk && this._container.classList.add("tee_afk"), this._container.classList.add("tee_initialized"), this._container.classList.remove("tee_initializing"), this._debounceUpdateTeeImage = j(this.updateTeeImage, 10), this.addEventListener("tee:rendered", () => {
 			this._container.classList.add("tee_rendered");
 		}, { once: !0 }), this.followMouse = t.followMouse === !0, this.loadSkin(this._skinUrl, !1);
 	}
@@ -282,6 +283,12 @@ var F = /* @__PURE__ */ t({
 	}
 	set fat(e) {
 		this._fat !== e && (this._fat = e, this._container.classList.toggle("tee_fat", e));
+	}
+	get afk() {
+		return this._afk;
+	}
+	set afk(e) {
+		this._afk !== e && (this._afk = e, this._container.classList.toggle("tee_afk", e));
 	}
 	get followMouse() {
 		return this._followMouseFn !== null;
@@ -429,6 +436,7 @@ async function z(e = !0) {
 		followMouse: e.dataset.followMouse === void 0 ? void 0 : e.dataset.followMouse === "true",
 		direction: e.dataset.direction,
 		fat: e.dataset.fat === void 0 ? void 0 : e.dataset.fat === "true",
+		afk: e.dataset.afk === void 0 ? void 0 : e.dataset.afk === "true",
 		skinUrl: e.dataset.skin
 	}));
 	e ? await Promise.allSettled(t).then((e) => {
@@ -443,7 +451,7 @@ async function z(e = !0) {
 }
 async function B(e) {
 	let t = document.createElement("div");
-	e.colorBody !== void 0 && (t.dataset.colorBody = e.colorBody + ""), e.colorFeet !== void 0 && (t.dataset.colorFeet = e.colorFeet + ""), e.useCustomColor !== void 0 && (t.dataset.useCustomColor = e.useCustomColor ? "true" : "false"), e.eyes !== void 0 && (t.dataset.eyes = e.eyes), e.followMouse !== void 0 && (t.dataset.followMouse = e.followMouse ? "true" : "false"), e.direction !== void 0 && (t.dataset.direction = e.direction), e.fat !== void 0 && (t.dataset.fat = e.fat ? "true" : "false"), t.dataset.skin = e.skinUrl, t.classList.add("tee");
+	e.colorBody !== void 0 && (t.dataset.colorBody = e.colorBody + ""), e.colorFeet !== void 0 && (t.dataset.colorFeet = e.colorFeet + ""), e.useCustomColor !== void 0 && (t.dataset.useCustomColor = e.useCustomColor ? "true" : "false"), e.eyes !== void 0 && (t.dataset.eyes = e.eyes), e.followMouse !== void 0 && (t.dataset.followMouse = e.followMouse ? "true" : "false"), e.direction !== void 0 && (t.dataset.direction = e.direction), e.fat !== void 0 && (t.dataset.fat = e.fat ? "true" : "false"), e.afk !== void 0 && (t.dataset.afk = e.afk ? "true" : "false"), t.dataset.skin = e.skinUrl, t.classList.add("tee");
 	let n = await R(t, e);
 	return n.update(), n.container;
 }

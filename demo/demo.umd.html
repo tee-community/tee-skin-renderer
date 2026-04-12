@@ -371,6 +371,11 @@
                         <span class="toggle-dot"></span>
                         Follow mouse
                     </label>
+                    <label class="toggle" id="toggleAfk">
+                        <input id="afk" type="checkbox" />
+                        <span class="toggle-dot"></span>
+                        AFK
+                    </label>
                 </div>
             </div>
         </div>
@@ -499,6 +504,13 @@
         document.getElementById('fat').addEventListener('change', function () {
             elTee.tee.fat = this.checked;
             elToggleFat.classList.toggle('active', this.checked);
+        });
+
+        // AFK
+        const elToggleAfk = document.getElementById('toggleAfk');
+        document.getElementById('afk').addEventListener('change', function () {
+            elTee.tee.afk = this.checked;
+            elToggleAfk.classList.toggle('active', this.checked);
         });
 
         // Follow mouse

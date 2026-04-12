@@ -37,6 +37,7 @@ export interface TeeRendererConfig {
     followMouse?: boolean;
     direction?: TeeDirection;
     fat?: boolean;
+    afk?: boolean;
     skinUrl: string;
 }
 
@@ -48,6 +49,7 @@ export interface TeeContainerDatasetMap extends DOMStringMap {
     followMouse?: string;
     direction?: TeeDirection;
     fat?: string;
+    afk?: string;
     skin: string;
 }
 
@@ -65,6 +67,7 @@ export class TeeRenderer {
     private _eyes: TeeEyeType;
     private _direction: TeeDirection;
     private _fat: boolean;
+    private _afk: boolean;
     private _colorBody: ColorTee | undefined;
     private _colorFeet: ColorTee | undefined;
     private _useCustomColor: boolean;
@@ -105,12 +108,16 @@ export class TeeRenderer {
         this._eyes = config.eyes ?? 'normal';
         this._direction = config.direction ?? 'right';
         this._fat = config.fat ?? false;
+        this._afk = config.afk ?? false;
         this._skinUrl = config.skinUrl;
         if (this._direction === 'left') {
             this._container.classList.add('tee_facing-left');
         }
         if (this._fat) {
             this._container.classList.add('tee_fat');
+        }
+        if (this._afk) {
+            this._container.classList.add('tee_afk');
         }
         this._container.classList.add('tee_initialized');
         this._container.classList.remove('tee_initializing');
@@ -227,6 +234,19 @@ export class TeeRenderer {
 
         this._fat = value;
         this._container.classList.toggle('tee_fat', value);
+    }
+
+    public get afk(): boolean {
+        return this._afk;
+    }
+
+    public set afk(value: boolean) {
+        if (this._afk === value) {
+            return;
+        }
+
+        this._afk = value;
+        this._container.classList.toggle('tee_afk', value);
     }
 
     public get followMouse(): boolean {
@@ -674,6 +694,9 @@ export async function initializeAsync(simultaneously: boolean = true) {
         fat: container.dataset.fat !== undefined
             ? container.dataset.fat === 'true'
             : undefined,
+        afk: container.dataset.afk !== undefined
+            ? container.dataset.afk === 'true'
+            : undefined,
         skinUrl: container.dataset.skin,
     }));
 
@@ -725,6 +748,10 @@ export async function createAsync(config: TeeRendererConfig): Promise<TeeContain
 
     if (config.fat !== undefined) {
         container.dataset.fat = config.fat ? 'true' : 'false';
+    }
+
+    if (config.afk !== undefined) {
+        container.dataset.afk = config.afk ? 'true' : 'false';
     }
 
     container.dataset.skin = config.skinUrl;

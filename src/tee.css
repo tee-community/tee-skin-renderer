@@ -221,6 +221,36 @@
     transform: translate(-50%, calc(-50% - 6em)) scale(1.3);
 }
 
+/*     */
+/* AFK */
+/*     */
+
+.tee_afk::before,
+.tee_afk::after {
+    transform: translate(-50%, calc(-50% - 1.5em));
+}
+
+.tee_afk .tee__foot_back {
+    transform: translate(calc(-50% + 18em), calc(-50% + 15em)) scale(1.5) rotate(-36deg);
+}
+
+.tee_afk .tee__foot_front {
+    transform: translate(calc(-50% + 12em), calc(-50% + 15em)) scale(1.5) rotate(-36deg);
+}
+
+.tee_afk .tee__eyes::before {
+    transform: scale(1.2, 0.45);
+}
+
+.tee_afk .tee__eyes::after {
+    transform: scale(-1.2, 0.45);
+}
+
+.tee_afk.tee_fat::before,
+.tee_afk.tee_fat::after {
+    transform: translate(-50%, calc(-50% - 1.5em)) scale(1.3);
+}
+
 /*        */
 /* COMMON */
 /*        */
