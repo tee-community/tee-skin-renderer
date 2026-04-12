@@ -1,7 +1,7 @@
 <p align="center"><b>tee-skin-renderer</b> - Teeworlds / DDNet skin renderer for you HTML pages</p>
 
 <p align="center">
-    <a href="https://tee-community.github.io/tee-skin-renderer/demo.umd.html"><b>Live Demo</b></a>
+    <a href="https://render.tee.skin/"><b>Live Demo</b></a>
 </p>
 
 <p align="center">
