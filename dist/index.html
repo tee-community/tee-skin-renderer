@@ -23,9 +23,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             background: #0f1117;
             color: #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             min-height: 100vh;
         }
 
@@ -33,7 +30,9 @@
             display: flex;
             gap: 48px;
             align-items: center;
+            justify-content: center;
             padding: 40px;
+            min-height: 100vh;
         }
 
         .stage {
@@ -301,6 +300,186 @@
                 width: 100%;
             }
         }
+
+        /* Examples section */
+        .examples-section {
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 64px 40px 120px;
+        }
+
+        .examples-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 32px;
+            letter-spacing: -0.3px;
+        }
+
+        .examples-subtitle {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: #6366f1;
+            background: rgba(99, 102, 241, 0.12);
+            padding: 3px 10px;
+            border-radius: 6px;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        .example {
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .example-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .example-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #a5b4fc;
+        }
+
+        .example-desc {
+            font-size: 12px;
+            color: #555;
+        }
+
+        .example-content {
+            display: grid;
+            grid-template-columns: 1fr 160px;
+            gap: 0;
+        }
+
+        .example-content_wide {
+            grid-template-columns: 1fr 320px;
+        }
+
+        .code {
+            margin: 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            overflow-x: auto;
+            font-size: 12.5px;
+            line-height: 1.65;
+            font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+            color: #b0b8c8;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .code code {
+            font-family: inherit;
+        }
+
+        .example-preview {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            min-height: 120px;
+            background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+            position: relative;
+        }
+
+        .example-preview .tee {
+            font-size: 1.2px;
+        }
+
+        .example-preview_gallery {
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 12px;
+        }
+
+        .example-preview_gallery .tee {
+            font-size: 0.55px;
+        }
+
+        .example-preview_gallery .eye-label {
+            font-size: 9px;
+            color: #555;
+            text-align: center;
+            margin-top: -2px;
+        }
+
+        .event-log {
+            position: absolute;
+            inset: 8px;
+            font-size: 10px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            color: #6ee7b7;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 2px;
+            pointer-events: none;
+        }
+
+        .event-log-entry {
+            opacity: 0;
+            animation: fadeInLog 0.3s ease forwards;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes fadeInLog {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .color-swatch {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-size: 11px;
+            font-family: 'SF Mono', monospace;
+            color: #b0b8c8;
+        }
+
+        .color-swatch-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .canvas-output {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            image-rendering: pixelated;
+        }
+
+        @media (max-width: 700px) {
+            .examples-section {
+                padding: 40px 16px 100px;
+            }
+            .example-content,
+            .example-content_wide {
+                grid-template-columns: 1fr;
+            }
+            .example-preview {
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+            }
+            .code {
+                border-right: none;
+            }
+        }
     </style>
 </head>
 
@@ -381,7 +560,167 @@
         </div>
     </div>
 
-    <div style="position:fixed;bottom:20px;right:20px;display:flex;gap:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;">
+    <div class="examples-section" id="examples">
+        <h2 class="examples-title">Code Examples <span class="examples-subtitle">UMD</span></h2>
+
+        <div class="example">
+            <div class="example-header">
+                <span class="example-label">HTML + Auto-init</span>
+                <span class="example-desc">Declarative setup via data attributes</span>
+            </div>
+            <div class="example-content">
+                <pre class="code"><code>&lt;link href="tee-skin-renderer.css" rel="stylesheet"&gt;
+&lt;script src="tee-skin-renderer.umd.js"&gt;&lt;/script&gt;
+
+&lt;div class="tee"
+     data-skin="https://skins.ddnet.org/skin/community/pinky.png"
+     data-color-body="5498880"
+     data-color-feet="3079936"
+     data-eyes="happy"
+     data-follow-mouse="true"&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  // Auto-initialize all .tee elements on the page
+  TeeSkinRenderer.init();
+&lt;/script&gt;</code></pre>
+                <div class="example-preview" id="preview-html"></div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div class="example-header">
+                <span class="example-label">Programmatic</span>
+                <span class="example-desc">Create a tee with JS and append to DOM</span>
+            </div>
+            <div class="example-content">
+                <pre class="code"><code>const container = await TeeSkinRenderer.createAsync({
+  skinUrl: 'https://skins.ddnet.org/skin/community/pinky.png',
+  colorBody: 5498880,
+  colorFeet: 3079936,
+  eyes: 'happy',
+  followMouse: true,
+});
+
+document.body.appendChild(container);</code></pre>
+                <div class="example-preview" id="preview-programmatic"></div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div class="example-header">
+                <span class="example-label">Dynamic Properties</span>
+                <span class="example-desc">Change skin, colors, eyes and direction at runtime</span>
+            </div>
+            <div class="example-content">
+                <pre class="code"><code>const container = await TeeSkinRenderer.createAsync({
+  skinUrl: 'https://skins.ddnet.org/skin/community/default.png',
+});
+
+// Access the renderer via container.tee
+const tee = container.tee;
+
+tee.skinUrl   = 'https://skins.ddnet.org/skin/community/pinky.png';
+tee.colorBody = 16768387;
+tee.colorFeet = 16777215;
+tee.useCustomColor = true;
+tee.eyes      = 'surprise';
+tee.direction = 'left';
+tee.fat       = true;</code></pre>
+                <div class="example-preview" id="preview-dynamic"></div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div class="example-header">
+                <span class="example-label">Events</span>
+                <span class="example-desc">React to skin loading and rendering</span>
+            </div>
+            <div class="example-content">
+                <pre class="code"><code>const container = await TeeSkinRenderer.createAsync({
+  skinUrl: 'https://skins.ddnet.org/skin/community/pinky.png',
+  colorBody: 53063,
+  colorFeet: 524159,
+});
+
+container.tee.addEventListener('tee:skin-loaded', (e) => {
+  const { skin, success } = e.detail.payload;
+  console.log(`Skin ${skin}: ${success ? 'loaded' : 'failed'}`);
+});
+
+container.tee.addEventListener('tee:rendered', (e) => {
+  console.log('Tee rendered!');
+});</code></pre>
+                <div class="example-preview" id="preview-events">
+                    <div class="event-log" id="eventLog"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div class="example-header">
+                <span class="example-label">Render to Canvas</span>
+                <span class="example-desc">Export tee as a pixel-perfect canvas image</span>
+            </div>
+            <div class="example-content">
+                <pre class="code"><code>const container = await TeeSkinRenderer.createAsync({
+  skinUrl: 'https://skins.ddnet.org/skin/community/pinky.png',
+  colorBody: 5498880,
+  colorFeet: 3079936,
+});
+
+const canvas = document.createElement('canvas');
+container.tee.renderToCanvas(canvas, {
+  size: 128,
+  eyes: 'happy',
+  direction: 'right',
+});
+
+document.body.appendChild(canvas);</code></pre>
+                <div class="example-preview" id="preview-canvas"></div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div class="example-header">
+                <span class="example-label">Color Utilities</span>
+                <span class="example-desc">Convert tee integer colors to HSL/RGBA</span>
+            </div>
+            <div class="example-content">
+                <pre class="code"><code>const { color } = TeeSkinRenderer;
+
+const teeColor = 5498880;
+
+const hsl  = color.convertTeeColorToHsl(teeColor);
+// [74.8, 100, 75.1]  = H, S%, L%
+
+const rgba = color.convertTeeColorToRgba(teeColor);
+// [127.5, 255, 0, 255]  = R, G, B, A</code></pre>
+                <div class="example-preview" id="preview-color"></div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div class="example-header">
+                <span class="example-label">Eye Gallery</span>
+                <span class="example-desc">All 7 eye types side by side</span>
+            </div>
+            <div class="example-content example-content_wide">
+                <pre class="code"><code>const eyes = ['normal', 'happy', 'angry', 'pain', 'surprise', 'dead', 'blink'];
+
+for (const eye of eyes) {
+  const container = await TeeSkinRenderer.createAsync({
+    skinUrl: 'https://skins.ddnet.org/skin/community/pinky.png',
+    eyes: eye,
+  });
+  gallery.appendChild(container);
+}</code></pre>
+                <div class="example-preview example-preview_gallery" id="preview-gallery"></div>
+            </div>
+        </div>
+    </div>
+
+    <div style="position:fixed;bottom:20px;right:20px;display:flex;gap:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;z-index:100;">
         <a href="https://github.com/tee-community" target="_blank" style="display:flex;align-items:center;gap:6px;padding:10px 18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#a5b4fc;font-size:14px;font-weight:500;text-decoration:none;transition:all 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.12)';this.style.borderColor='rgba(99,102,241,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.06)';this.style.borderColor='rgba(255,255,255,0.1)'">&#10084;&#65039; tee.community</a>
         <a href="https://github.com/tee-community/tee-skin-renderer" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#a5b4fc;font-size:14px;font-weight:500;text-decoration:none;transition:all 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.12)';this.style.borderColor='rgba(99,102,241,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.06)';this.style.borderColor='rgba(255,255,255,0.1)'"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
     </div>
@@ -522,6 +861,122 @@
             elTee.tee.followMouse = this.checked;
             elToggleFollow.classList.toggle('active', this.checked);
         });
+        // === Code examples: live previews ===
+        const SKIN = 'https://skins.ddnet.org/skin/community/pinky.png';
+
+        // 1. HTML auto-init preview
+        TeeSkinRenderer.createAsync({
+            skinUrl: SKIN,
+            colorBody: 5498880,
+            colorFeet: 3079936,
+            eyes: 'happy',
+            followMouse: true,
+        }).then(c => document.getElementById('preview-html').appendChild(c));
+
+        // 2. Programmatic
+        TeeSkinRenderer.createAsync({
+            skinUrl: SKIN,
+            colorBody: 5498880,
+            colorFeet: 3079936,
+            eyes: 'happy',
+            followMouse: true,
+        }).then(c => document.getElementById('preview-programmatic').appendChild(c));
+
+        // 3. Dynamic properties
+        TeeSkinRenderer.createAsync({
+            skinUrl: 'https://skins.ddnet.org/skin/community/default.png',
+        }).then(c => {
+            document.getElementById('preview-dynamic').appendChild(c);
+            setTimeout(() => {
+                c.tee.skinUrl = SKIN;
+                c.tee.colorBody = 16768387;
+                c.tee.colorFeet = 16777215;
+                c.tee.useCustomColor = true;
+                c.tee.eyes = 'surprise';
+                c.tee.direction = 'left';
+                c.tee.fat = true;
+            }, 800);
+        });
+
+        // 4. Events
+        TeeSkinRenderer.createAsync({
+            skinUrl: SKIN,
+            colorBody: 53063,
+            colorFeet: 524159,
+        }).then(c => {
+            const log = document.getElementById('eventLog');
+            const addLog = (text) => {
+                const el = document.createElement('div');
+                el.className = 'event-log-entry';
+                el.textContent = text;
+                log.appendChild(el);
+                while (log.children.length > 5) log.removeChild(log.firstChild);
+            };
+
+            c.tee.addEventListener('tee:skin-loaded', (e) => {
+                addLog(`skin-loaded: ${e.detail.payload.success ? 'ok' : 'fail'}`);
+            });
+            c.tee.addEventListener('tee:rendered', () => {
+                addLog('rendered');
+            });
+
+            document.getElementById('preview-events').insertBefore(c, log);
+        });
+
+        // 5. Render to canvas
+        TeeSkinRenderer.createAsync({
+            skinUrl: SKIN,
+            colorBody: 5498880,
+            colorFeet: 3079936,
+        }).then(c => {
+            c.tee.addEventListener('tee:rendered', () => {
+                const canvas = document.createElement('canvas');
+                canvas.className = 'canvas-output';
+                canvas.style.width = '96px';
+                canvas.style.height = '96px';
+                c.tee.renderToCanvas(canvas, { size: 128, eyes: 'happy' });
+                document.getElementById('preview-canvas').appendChild(canvas);
+            }, { once: true });
+        });
+
+        // 6. Color utilities
+        (function() {
+            const { color } = TeeSkinRenderer;
+            const preview = document.getElementById('preview-color');
+            preview.style.flexDirection = 'column';
+            preview.style.gap = '6px';
+
+            const teeColor = 5498880;
+            const hsl = color.convertTeeColorToHsl(teeColor);
+            const rgba = color.convertTeeColorToRgba(teeColor);
+
+            const sw1 = document.createElement('div');
+            sw1.className = 'color-swatch';
+            sw1.innerHTML = `<span class="color-swatch-dot" style="background:rgb(${Math.round(rgba[0])},${Math.round(rgba[1])},${Math.round(rgba[2])})"></span>HSL: ${hsl.map(v => v.toFixed(1)).join(', ')}`;
+            preview.appendChild(sw1);
+
+            const sw2 = document.createElement('div');
+            sw2.className = 'color-swatch';
+            sw2.innerHTML = `<span class="color-swatch-dot" style="background:rgb(${Math.round(rgba[0])},${Math.round(rgba[1])},${Math.round(rgba[2])})"></span>RGBA: ${rgba.map(v => Math.round(v)).join(', ')}`;
+            preview.appendChild(sw2);
+        })();
+
+        // 7. Eye gallery
+        (async function() {
+            const gallery = document.getElementById('preview-gallery');
+            const eyes = ['normal', 'happy', 'angry', 'pain', 'surprise', 'dead', 'blink'];
+            for (const eye of eyes) {
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
+                const c = await TeeSkinRenderer.createAsync({ skinUrl: SKIN, eyes: eye });
+                wrap.appendChild(c);
+                const label = document.createElement('div');
+                label.className = 'eye-label';
+                label.textContent = eye;
+                wrap.appendChild(label);
+                gallery.appendChild(wrap);
+            }
+        })();
     </script>
 </body>
 

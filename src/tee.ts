@@ -144,6 +144,9 @@ export class TeeRenderer {
     public set colorBody(color: ColorTee | undefined) {
         if (color === undefined) {
             delete this._container.dataset.colorBody;
+            this._colorBody = undefined;
+            this.update();
+            return;
         }
 
         this._colorBody = Number(color);
@@ -169,6 +172,9 @@ export class TeeRenderer {
     public set colorFeet(color: ColorTee | undefined) {
         if (color === undefined) {
             delete this._container.dataset.colorFeet;
+            this._colorFeet = undefined;
+            this.update();
+            return;
         }
 
         this._colorFeet = Number(color);
@@ -539,21 +545,21 @@ export class TeeRenderer {
         const eyeSep = Atlas.EYE_SEPARATION * scale * flipX;
         const eyeY = centerY - size * 0.125 + Atlas.BODY_OFFSET_Y * scale;
 
-        // Rendering order (DDNet Protocol 6):
-        // 0: body outline
-        drawSprite(Atlas.SPRITE_BODY_OUTLINE, centerX, bodyY, bodySize, bodySize);
-        // 1: back foot outline
+        // Rendering order (DDNet RenderTee6):
+        // 0: back foot outline
         drawSprite(Atlas.SPRITE_FOOT_OUTLINE, centerX - footDx, centerY + footDy, footW, footH);
-        // 2: back foot
+        // 1: body outline
+        drawSprite(Atlas.SPRITE_BODY_OUTLINE, centerX, bodyY, bodySize, bodySize);
+        // 2: front foot outline
+        drawSprite(Atlas.SPRITE_FOOT_OUTLINE, centerX + footDx, centerY + footDy, footW, footH);
+        // 3: back foot fill
         drawSprite(Atlas.SPRITE_FOOT, centerX - footDx, centerY + footDy, footW, footH);
-        // 3: body
+        // 4: body fill
         drawSprite(Atlas.SPRITE_BODY, centerX, bodyY, bodySize, bodySize);
-        // 4: eyes (two eyes)
+        // 5: eyes
         drawSprite(eyeSprite, centerX - eyeSep, eyeY, eyeSize, eyeH);
         drawSprite(eyeSprite, centerX + eyeSep, eyeY, eyeSize, eyeH, true);
-        // 5: front foot outline
-        drawSprite(Atlas.SPRITE_FOOT_OUTLINE, centerX + footDx, centerY + footDy, footW, footH);
-        // 6: front foot
+        // 6: front foot fill
         drawSprite(Atlas.SPRITE_FOOT, centerX + footDx, centerY + footDy, footW, footH);
     }
 
@@ -679,7 +685,7 @@ export function createRendererAsync(
 }
 
 export async function initializeAsync(simultaneously: boolean = true) {
-    const containers = [...document.querySelectorAll<TeeDivElement>('.tee:not(.tee_initialized):not(.tee_initializing')];
+    const containers = [...document.querySelectorAll<TeeDivElement>('.tee:not(.tee_initialized):not(.tee_initializing)')];
     const tasks = containers.map((container) => createRendererAsync(container, {
         colorBody: parseInt(container.dataset.colorBody!) || undefined,
         colorFeet: parseInt(container.dataset.colorFeet!) || undefined,

@@ -240,7 +240,11 @@ var F = /* @__PURE__ */ t({
 		return this._colorBody;
 	}
 	set colorBody(e) {
-		e === void 0 && delete this._container.dataset.colorBody, this._colorBody = Number(e), this.update();
+		if (e === void 0) {
+			delete this._container.dataset.colorBody, this._colorBody = void 0, this.update();
+			return;
+		}
+		this._colorBody = Number(e), this.update();
 	}
 	get colorBodyHsl() {
 		return this._colorBody === void 0 ? void 0 : r(this._colorBody);
@@ -252,7 +256,11 @@ var F = /* @__PURE__ */ t({
 		return this._colorFeet;
 	}
 	set colorFeet(e) {
-		e === void 0 && delete this._container.dataset.colorFeet, this._colorFeet = Number(e), this.update();
+		if (e === void 0) {
+			delete this._container.dataset.colorFeet, this._colorFeet = void 0, this.update();
+			return;
+		}
+		this._colorFeet = Number(e), this.update();
 	}
 	get colorFeetHsl() {
 		return this._colorFeet === void 0 ? void 0 : r(this._colorFeet);
@@ -386,7 +394,7 @@ var F = /* @__PURE__ */ t({
 			surprise: y,
 			blink: m
 		}[s] ?? m, H = m.w * w * c, U = s === "blink" ? H * .375 : H, W = T * c * P, G = M - n * .125 + -6 * c;
-		F(u, j, N, I, I), F(x, j - z, M + B, L, R), F(b, j - z, M + B, L, R), F(l, j, N, I, I), F(V, j - W, G, H, U), F(V, j + W, G, H, U, !0), F(x, j + z, M + B, L, R), F(b, j + z, M + B, L, R);
+		F(x, j - z, M + B, L, R), F(u, j, N, I, I), F(x, j + z, M + B, L, R), F(b, j - z, M + B, L, R), F(l, j, N, I, I), F(V, j - W, G, H, U), F(V, j + W, G, H, U, !0), F(b, j + z, M + B, L, R);
 	}
 	destroy() {
 		this.followMouse = !1, this._currentObjectUrl &&= (URL.revokeObjectURL(this._currentObjectUrl), null), this._skinBitmap &&= (this._skinBitmap.close(), null), this._offscreen = null, this._offscreenContext = null, this._cachedColorKey = null, this._skinLoadedCallback = null, this.setSkinVariableValue(null), this._container.classList.remove("tee_initialized", "tee_rendered");
@@ -428,7 +436,7 @@ function R(e, t) {
 	});
 }
 async function z(e = !0) {
-	let t = [...document.querySelectorAll(".tee:not(.tee_initialized):not(.tee_initializing")].map((e) => R(e, {
+	let t = [...document.querySelectorAll(".tee:not(.tee_initialized):not(.tee_initializing)")].map((e) => R(e, {
 		colorBody: parseInt(e.dataset.colorBody) || void 0,
 		colorFeet: parseInt(e.dataset.colorFeet) || void 0,
 		useCustomColor: e.dataset.useCustomColor === void 0 ? void 0 : e.dataset.useCustomColor === "true",
