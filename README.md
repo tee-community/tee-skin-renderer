@@ -119,9 +119,32 @@ import 'tee-skin-renderer/css';
 init();
 ```
 
+## Sizing
+
+The tee container is `96em × 96em`. Since `.tee` sets `font-size: 1px` by default, this equals **96 × 96 px**. Change `font-size` to scale the tee:
+
+```css
+/* CSS classes */
+.tee-xs { font-size: 0.35px; }  /* ~34px */
+.tee-sm { font-size: 0.55px; }  /* ~53px */
+.tee-md { font-size: 1px;    }  /* 96px (default) */
+.tee-lg { font-size: 1.6px;  }  /* ~154px */
+.tee-xl { font-size: 2.2px;  }  /* ~211px */
+```
+
+```html
+<!-- Inline -->
+<div class="tee" style="font-size: 1.5px" data-skin="..."></div>
+```
+
+```js
+// Programmatic
+container.style.fontSize = '2px';
+```
+
 ## Skin Format
 
-Supports standard Teeworlds/DDNet skin images with a **2:1 aspect ratio** at any resolution: 256x128, 512x256, 1024x512, 2048x1024, etc.
+Supports standard Teeworlds/DDNet skin images with a **2:1 aspect ratio** at any resolution: 256×128, 512×256, 1024×512, 2048×1024, etc.
 
 ## Data Attributes
 
@@ -133,7 +156,8 @@ Supports standard Teeworlds/DDNet skin images with a **2:1 aspect ratio** at any
 | `data-use-custom-color` | `boolean` | Enable/disable custom coloring |
 | `data-eyes` | `string` | Eye type: `normal`, `angry`, `pain`, `happy`, `dead`, `surprise`, `blink` |
 | `data-direction` | `string` | Facing direction: `left`, `right` |
-| `data-fat` | `boolean` | Fat skin mode (1.3x body scale) |
+| `data-fat` | `boolean` | Fat skin mode (1.3× body scale) |
+| `data-afk` | `boolean` | AFK state with sit pose and blink eyes |
 | `data-follow-mouse` | `boolean` | Eyes follow mouse cursor |
 
 ## API
@@ -142,27 +166,83 @@ Supports standard Teeworlds/DDNet skin images with a **2:1 aspect ratio** at any
 
 Creates a tee renderer programmatically.
 
-### `init(): Promise<void>`
+```js
+const container = await createAsync({
+    skinUrl: 'https://skins.ddnet.org/skin/community/pinky.png',
+    colorBody: 5498880,
+    colorFeet: 3079936,
+    useCustomColor: true,
+    eyes: 'happy',
+    direction: 'right',
+    fat: false,
+    afk: false,
+    followMouse: true,
+});
 
-Auto-initializes all `.tee` elements with `data-skin` attribute.
+document.body.appendChild(container);
+```
+
+### `init(simultaneously?: boolean): Promise<void>`
+
+Auto-initializes all `.tee` elements on the page. By default initializes all tees simultaneously; pass `false` to initialize sequentially.
 
 ### TeeRenderer instance
+
+Access the renderer via `container.tee`:
 
 ```js
 const container = await createAsync({ skinUrl: '...' });
 const tee = container.tee;
 
+// Properties (get/set)
 tee.skinUrl = '...';           // Change skin
-tee.colorBody = 5498880;       // Set body color
-tee.colorFeet = 3079936;       // Set feet color
+tee.colorBody = 5498880;       // Set body color (or undefined to clear)
+tee.colorFeet = 3079936;       // Set feet color (or undefined to clear)
 tee.useCustomColor = true;     // Toggle custom colors
 tee.eyes = 'angry';            // Change eye type
 tee.direction = 'left';        // Change facing direction
 tee.fat = true;                // Toggle fat mode
+tee.afk = true;                // Toggle AFK state
 tee.followMouse = true;        // Toggle mouse following
+
+// Read-only
+tee.colorBodyHsl;              // [h, s, l] or undefined
+tee.colorBodyRgba;             // [r, g, b, a] or undefined
+tee.colorFeetHsl;
+tee.colorFeetRgba;
+tee.skinBitmap;                // ImageBitmap or null
+
+// Methods
 tee.update();                  // Force re-render
 tee.destroy();                 // Clean up resources
-tee.renderToCanvas(canvas);    // Render to canvas element
+tee.renderToCanvas(canvas, {   // Render to canvas element
+    size: 128,                 //   output size in px (default: 96)
+    eyes: 'happy',             //   override eye type
+    direction: 'left',         //   override direction
+});
+```
+
+### Events
+
+```js
+container.tee.addEventListener('tee:skin-loaded', (e) => {
+    const { skin, success } = e.detail.payload;
+    console.log(`Skin ${skin}: ${success ? 'loaded' : 'failed'}`);
+});
+
+container.tee.addEventListener('tee:rendered', (e) => {
+    console.log('Tee rendered!');
+});
+```
+
+### Color Utilities
+
+```js
+import { color } from 'tee-skin-renderer';
+
+color.convertTeeColorToHsl(5498880);   // [h, s, l]
+color.convertTeeColorToRgba(5498880);  // [r, g, b, a]
+color.convertHslToRgba([120, 100, 75]); // [r, g, b, a]
 ```
 
 ## License

@@ -396,6 +396,26 @@
             font-size: 1.2px;
         }
 
+        .example-preview_sizing {
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 6px;
+            padding: 12px 8px;
+        }
+
+        .example-preview_sizing .size-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .example-preview_sizing .size-label {
+            font-size: 9px;
+            color: #555;
+            font-family: 'SF Mono', monospace;
+        }
+
         .example-preview_gallery {
             flex-wrap: wrap;
             gap: 4px;
@@ -683,6 +703,32 @@ document.body.appendChild(canvas);</code></pre>
 
         <div class="example">
             <div class="example-header">
+                <span class="example-label">Sizing</span>
+                <span class="example-desc">Control tee size with CSS font-size (base = 96em at 1px)</span>
+            </div>
+            <div class="example-content example-content_wide">
+                <pre class="code"><code>/* Base tee is 96em &times; 96em.
+   At font-size: 1px &rarr; 96px.
+   Scale by changing font-size: */
+
+.tee-xs  { font-size: 0.35px; }  /* 34px  */
+.tee-sm  { font-size: 0.55px; }  /* 53px  */
+.tee-md  { font-size: 1px;    }  /* 96px  (default) */
+.tee-lg  { font-size: 1.6px;  }  /* 154px */
+.tee-xl  { font-size: 2.2px;  }  /* 211px */
+
+/* Or set it inline: */
+&lt;div class="tee" style="font-size: 1.5px"
+     data-skin="..."&gt;&lt;/div&gt;
+
+/* Or dynamically via JS: */
+container.style.fontSize = '2px';</code></pre>
+                <div class="example-preview example-preview_sizing" id="preview-sizing"></div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div class="example-header">
                 <span class="example-label">Color Utilities</span>
                 <span class="example-desc">Convert tee integer colors to HSL/RGBA</span>
             </div>
@@ -939,7 +985,31 @@ for (const eye of eyes) {
             }, { once: true });
         });
 
-        // 6. Color utilities
+        // 6. Sizing
+        (async function() {
+            const sizingPreview = document.getElementById('preview-sizing');
+            const sizes = [
+                { cls: 'xs', fs: '0.35px', label: '0.35px' },
+                { cls: 'sm', fs: '0.55px', label: '0.55px' },
+                { cls: 'md', fs: '1px',    label: '1px' },
+                { cls: 'lg', fs: '1.6px',  label: '1.6px' },
+                { cls: 'xl', fs: '2.2px',  label: '2.2px' },
+            ];
+            for (const s of sizes) {
+                const wrap = document.createElement('div');
+                wrap.className = 'size-item';
+                const c = await TeeSkinRenderer.createAsync({ skinUrl: SKIN });
+                c.style.fontSize = s.fs;
+                wrap.appendChild(c);
+                const label = document.createElement('div');
+                label.className = 'size-label';
+                label.textContent = s.label;
+                wrap.appendChild(label);
+                sizingPreview.appendChild(wrap);
+            }
+        })();
+
+        // 7. Color utilities
         (function() {
             const { color } = TeeSkinRenderer;
             const preview = document.getElementById('preview-color');
@@ -961,7 +1031,7 @@ for (const eye of eyes) {
             preview.appendChild(sw2);
         })();
 
-        // 7. Eye gallery
+        // 8. Eye gallery
         (async function() {
             const gallery = document.getElementById('preview-gallery');
             const eyes = ['normal', 'happy', 'angry', 'pain', 'surprise', 'dead', 'blink'];
