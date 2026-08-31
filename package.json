@@ -26,7 +26,8 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "test": "bun test"
     },
     "devDependencies": {
         "@types/node": "^25.6.0",

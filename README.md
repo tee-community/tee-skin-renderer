@@ -49,7 +49,7 @@
 ```html
 <head>
     <!-- ... -->
-    <link rel="preload" as="image" href="https://skins.ddnet.org/skin/community/default.png">
+    <link rel="preload" as="image" href="https://ddstats.tw/skins/default.png">
     <link rel="stylesheet" href="https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.css">
     <!-- ... -->
 </head>
@@ -79,7 +79,7 @@
         data-color-feet="3079936"
         data-use-custom-color="true"
         data-eyes="happy"
-        data-direction="left"
+        data-speed="10"
         data-fat="true"
         data-follow-mouse="true"
     >
@@ -104,7 +104,8 @@ createAsync({
     colorBody: 5498880,
     colorFeet: 3079936,
     eyes: 'happy',
-    direction: 'right',
+    speed: 10,
+    inAir: false,
     fat: false,
     followMouse: true,
 }).then((container) => {
@@ -142,6 +143,33 @@ The tee container is `96em × 96em`. Since `.tee` sets `font-size: 1px` by defau
 container.style.fontSize = '2px';
 ```
 
+## Animation
+
+The renderer uses the same DDNet animation keyframes for idle, walking, running, AFK and in-air poses.
+
+`speed` is the signed horizontal velocity in DDNet world units per tick. It controls both the animation mode and the cycle phase:
+
+- `0` (or `|speed| <= 1 / 256`) — idle;
+- `0 < |speed| < 5000 / 256` — walk;
+- `|speed| >= 5000 / 256` — run;
+- negative speed plays the leg cycle backwards while the tee keeps facing right;
+- `inAir: true` — jump/fall pose, which takes priority over the movement animation.
+
+The animation is advanced with `requestAnimationFrame`, using DDNet's 50 ticks per second.
+
+```js
+const container = await createAsync({
+    skinUrl: 'https://ddstats.tw/skins/pinky.png',
+    speed: 10, // walk
+});
+
+const tee = container.tee;
+tee.speed = 20;  // run forward
+tee.speed = -20; // run with the reverse leg phase
+tee.inAir = true; // jump/fall pose
+tee.inAir = false;
+```
+
 ## Skin Format
 
 Supports standard Teeworlds/DDNet skin images with a **2:1 aspect ratio** at any resolution: 256×128, 512×256, 1024×512, 2048×1024, etc.
@@ -155,7 +183,8 @@ Supports standard Teeworlds/DDNet skin images with a **2:1 aspect ratio** at any
 | `data-color-feet` | `number` | Feet color in Teeworlds format |
 | `data-use-custom-color` | `boolean` | Enable/disable custom coloring |
 | `data-eyes` | `string` | Eye type: `normal`, `angry`, `pain`, `happy`, `dead`, `surprise`, `blink` |
-| `data-direction` | `string` | Facing direction: `left`, `right` |
+| `data-speed` | `number` | Signed horizontal velocity in DDNet world units per tick; controls walk/run and phase |
+| `data-in-air` | `boolean` | Use the in-air/jump pose |
 | `data-fat` | `boolean` | Fat skin mode (1.3× body scale) |
 | `data-afk` | `boolean` | AFK state with sit pose and blink eyes |
 | `data-follow-mouse` | `boolean` | Eyes follow mouse cursor |
@@ -168,12 +197,13 @@ Creates a tee renderer programmatically.
 
 ```js
 const container = await createAsync({
-    skinUrl: 'https://skins.ddnet.org/skin/community/pinky.png',
+    skinUrl: 'https://ddstats.tw/skins/pinky.png',
     colorBody: 5498880,
     colorFeet: 3079936,
     useCustomColor: true,
     eyes: 'happy',
-    direction: 'right',
+    speed: 10,
+    inAir: false,
     fat: false,
     afk: false,
     followMouse: true,
@@ -200,7 +230,8 @@ tee.colorBody = 5498880;       // Set body color (or undefined to clear)
 tee.colorFeet = 3079936;       // Set feet color (or undefined to clear)
 tee.useCustomColor = true;     // Toggle custom colors
 tee.eyes = 'angry';            // Change eye type
-tee.direction = 'left';        // Change facing direction
+tee.speed = -20;                // Reverse the leg animation phase
+tee.inAir = true;               // Use the jump/fall pose
 tee.fat = true;                // Toggle fat mode
 tee.afk = true;                // Toggle AFK state
 tee.followMouse = true;        // Toggle mouse following
@@ -218,9 +249,10 @@ tee.destroy();                 // Clean up resources
 tee.renderToCanvas(canvas, {   // Render to canvas element
     size: 128,                 //   output size in px (default: 96)
     eyes: 'happy',             //   override eye type
-    direction: 'left',         //   override direction
 });
 ```
+
+`renderToCanvas` uses the renderer's current `speed`, `inAir`, AFK and fat state.
 
 ### Events
 

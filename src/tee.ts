@@ -1,6 +1,13 @@
 import { ColorHsl, ColorRgba, ColorTee, convertTeeColorToHsl, convertTeeColorToRgba, computeOrgWeight, remapGreyscale } from './color';
 import * as Atlas from './atlas';
 import { debounce, throttle, loadImage } from './helpers';
+import {
+    DDNET_STATIONARY_SPEED,
+    DDNET_TICK_SPEED,
+    DOM_ANIMATION_SCALE,
+    evaluateTeeAnimation,
+} from './animation';
+import type { TeeAnimationFrame } from './animation';
 
 export type TeeEyeType =
     | 'normal'
@@ -27,15 +34,14 @@ export interface TeeRendererEventsMap {
     'tee:rendered': TeeRendererCustomEvent;
 }
 
-export type TeeDirection = 'left' | 'right';
-
 export interface TeeRendererConfig {
     colorBody?: ColorTee;
     colorFeet?: ColorTee;
     useCustomColor?: boolean;
     eyes?: TeeEyeType;
     followMouse?: boolean;
-    direction?: TeeDirection;
+    speed?: number;
+    inAir?: boolean;
     fat?: boolean;
     afk?: boolean;
     skinUrl: string;
@@ -47,7 +53,8 @@ export interface TeeContainerDatasetMap extends DOMStringMap {
     useCustomColor?: string;
     eyes?: TeeEyeType;
     followMouse?: string;
-    direction?: TeeDirection;
+    speed?: string;
+    inAir?: string;
     fat?: string;
     afk?: string;
     skin: string;
@@ -65,7 +72,8 @@ export interface TeeContainer extends TeeDivElement {
 export class TeeRenderer {
     private _container: TeeContainer;
     private _eyes: TeeEyeType;
-    private _direction: TeeDirection;
+    private _speed: number;
+    private _inAir: boolean;
     private _fat: boolean;
     private _afk: boolean;
     private _colorBody: ColorTee | undefined;
@@ -84,7 +92,32 @@ export class TeeRenderer {
     private _currentObjectUrl: string | null = null;
     private _cachedColorKey: string | null = null;
 
+    private _animationDistance: number = 0;
+    private _animationFrameId: number | null = null;
+    private _animationLastTimestamp: number | null = null;
+
     private readonly _debounceUpdateTeeImage: () => void;
+    private readonly _animationFrameCallback = (timestamp: number) => {
+        this._animationFrameId = null;
+
+        if (Math.abs(this._speed) <= DDNET_STATIONARY_SPEED) {
+            this._animationLastTimestamp = null;
+            return;
+        }
+
+        if (this._animationLastTimestamp !== null) {
+            const deltaSeconds = Math.min(
+                Math.max((timestamp - this._animationLastTimestamp) / 1000, 0),
+                0.1,
+            );
+            this._animationDistance += this._speed * DDNET_TICK_SPEED * deltaSeconds;
+            this._animationDistance %= 200;
+        }
+
+        this._animationLastTimestamp = timestamp;
+        this.applyAnimationFrame();
+        this._animationFrameId = requestAnimationFrame(this._animationFrameCallback);
+    };
 
     constructor(
         container: TeeDivElement,
@@ -106,13 +139,11 @@ export class TeeRenderer {
             ? config.useCustomColor
             : config.colorBody !== undefined || config.colorFeet !== undefined;
         this._eyes = config.eyes ?? 'normal';
-        this._direction = config.direction ?? 'right';
+        this._speed = Number.isFinite(config.speed) ? config.speed! : 0;
+        this._inAir = config.inAir ?? false;
         this._fat = config.fat ?? false;
         this._afk = config.afk ?? false;
         this._skinUrl = config.skinUrl;
-        if (this._direction === 'left') {
-            this._container.classList.add('tee_facing-left');
-        }
         if (this._fat) {
             this._container.classList.add('tee_fat');
         }
@@ -122,6 +153,10 @@ export class TeeRenderer {
         this._container.classList.add('tee_initialized');
         this._container.classList.remove('tee_initializing');
         this._debounceUpdateTeeImage = debounce(this.updateTeeImage, 10);
+        this._container.dataset.speed = String(this._speed);
+        this._container.dataset.inAir = this._inAir ? 'true' : 'false';
+        this.applyAnimationFrame();
+        this.updateAnimationLoop();
 
         this.addEventListener('tee:rendered', () => {
             this._container.classList.add('tee_rendered');
@@ -216,17 +251,35 @@ export class TeeRenderer {
         this._container.dataset.eyes = type;
     }
 
-    public get direction(): TeeDirection {
-        return this._direction;
+    public get speed(): number {
+        return this._speed;
     }
 
-    public set direction(dir: TeeDirection) {
-        if (this._direction === dir) {
+    public set speed(value: number) {
+        const speed = Number.isFinite(value) ? value : 0;
+        if (this._speed === speed) {
             return;
         }
 
-        this._direction = dir;
-        this._container.classList.toggle('tee_facing-left', dir === 'left');
+        this._speed = speed;
+        this._container.dataset.speed = String(speed);
+        this.applyAnimationFrame();
+        this.updateAnimationLoop();
+    }
+
+    public get inAir(): boolean {
+        return this._inAir;
+    }
+
+    public set inAir(value: boolean) {
+        if (this._inAir === value) {
+            return;
+        }
+
+        this._inAir = value;
+        this._container.dataset.inAir = value ? 'true' : 'false';
+        this.applyAnimationFrame();
+        this.updateAnimationLoop();
     }
 
     public get fat(): boolean {
@@ -253,6 +306,7 @@ export class TeeRenderer {
 
         this._afk = value;
         this._container.classList.toggle('tee_afk', value);
+        this.applyAnimationFrame();
     }
 
     public get followMouse(): boolean {
@@ -272,6 +326,8 @@ export class TeeRenderer {
             document.removeEventListener('mousemove', this._followMouseFn!);
             this._followMouseFn = null;
             this._container.dataset.followMouse = 'false';
+            this._container.style.setProperty('--tee-eye-follow-x', '0px');
+            this._container.style.setProperty('--tee-eye-follow-y', '0px');
         }
     }
 
@@ -282,14 +338,59 @@ export class TeeRenderer {
             const dy = (e.clientY - (containerRect.y + containerRect.height / 2 - containerRect.height * 0.125));
 
             const a = Math.atan2(dy, dx);
-            const flipX = this._direction === 'left' ? -1 : 1;
-            const x = (Math.cos(a) * 0.125) * containerRect.width * flipX;
+            const x = (Math.cos(a) * 0.125) * containerRect.width;
             const y = (Math.sin(a) * 0.1) * containerRect.height;
 
-            this._container.eyes.style.transform = `translate(${x.toFixed(4)}px, ${y.toFixed(4)}px)`;
+            this._container.style.setProperty('--tee-eye-follow-x', `${x.toFixed(4)}px`);
+            this._container.style.setProperty('--tee-eye-follow-y', `${y.toFixed(4)}px`);
         }, 20);
 
         return fn;
+    }
+
+    private getAnimationFrame(): TeeAnimationFrame {
+        return evaluateTeeAnimation({
+            speed: this._speed,
+            inAir: this._inAir,
+            afk: this._afk,
+            distance: this._animationDistance,
+        });
+    }
+
+    private setAnimationStyle(name: string, value: number, unit: string = 'em') {
+        this._container.style.setProperty(name, `${value}${unit}`);
+    }
+
+    private applyAnimationFrame(frame: TeeAnimationFrame = this.getAnimationFrame()) {
+        this.setAnimationStyle('--tee-body-x', frame.body.x * DOM_ANIMATION_SCALE);
+        this.setAnimationStyle('--tee-body-y', frame.body.y * DOM_ANIMATION_SCALE);
+        this.setAnimationStyle('--tee-body-angle', frame.body.angle * Math.PI * 2, 'rad');
+
+        this.setAnimationStyle('--tee-back-foot-x', frame.backFoot.x * DOM_ANIMATION_SCALE);
+        this.setAnimationStyle('--tee-back-foot-y', frame.backFoot.y * DOM_ANIMATION_SCALE);
+        this.setAnimationStyle('--tee-back-foot-angle', frame.backFoot.angle * Math.PI * 2, 'rad');
+
+        this.setAnimationStyle('--tee-front-foot-x', frame.frontFoot.x * DOM_ANIMATION_SCALE);
+        this.setAnimationStyle('--tee-front-foot-y', frame.frontFoot.y * DOM_ANIMATION_SCALE);
+        this.setAnimationStyle('--tee-front-foot-angle', frame.frontFoot.angle * Math.PI * 2, 'rad');
+    }
+
+    private updateAnimationLoop() {
+        const shouldAnimate = Math.abs(this._speed) > DDNET_STATIONARY_SPEED;
+
+        if (!shouldAnimate) {
+            if (this._animationFrameId !== null) {
+                cancelAnimationFrame(this._animationFrameId);
+                this._animationFrameId = null;
+            }
+            this._animationLastTimestamp = null;
+            return;
+        }
+
+        if (this._animationFrameId === null) {
+            this._animationLastTimestamp = null;
+            this._animationFrameId = requestAnimationFrame(this._animationFrameCallback);
+        }
     }
 
     public get skinUrl(): string {
@@ -442,16 +543,17 @@ export class TeeRenderer {
 
     public renderToCanvas(
         canvas: HTMLCanvasElement | OffscreenCanvas,
-        options?: { size?: number; direction?: TeeDirection; eyes?: TeeEyeType },
+        options?: { size?: number; eyes?: TeeEyeType },
     ): void {
         if (!this._skinBitmap) {
             return;
         }
 
         const size = options?.size ?? 96;
-        const dir = options?.direction ?? this._direction;
         const eyeType = options?.eyes ?? this._eyes;
-        const scale = size / Atlas.TEE_BASE_SIZE;
+        const spriteScale = size / Atlas.TEE_BASE_SIZE;
+        const animationScale = size / 64;
+        const animationFrame = this.getAnimationFrame();
 
         const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
         if (!ctx) return;
@@ -506,13 +608,23 @@ export class TeeRenderer {
 
         const centerX = size / 2;
         const centerY = size / 2;
-        const bodyY = centerY + Atlas.BODY_OFFSET_Y * scale;
+        const bodyPos = {
+            x: centerX + animationFrame.body.x * animationScale,
+            y: centerY + animationFrame.body.y * animationScale,
+        };
 
-        const flipX = dir === 'left' ? -1 : 1;
-
-        const drawSprite = (sprite: Atlas.SpriteRegion, dx: number, dy: number, dw: number, dh: number, flipH: boolean = false) => {
+        const drawSprite = (
+            sprite: Atlas.SpriteRegion,
+            dx: number,
+            dy: number,
+            dw: number,
+            dh: number,
+            rotation: number = 0,
+            flipH: boolean = false,
+        ) => {
             ctx.save();
             ctx.translate(dx, dy);
+            ctx.rotate(rotation);
             if (flipH) ctx.scale(-1, 1);
             ctx.drawImage(
                 skinCanvas,
@@ -523,11 +635,18 @@ export class TeeRenderer {
             ctx.restore();
         };
 
-        const bodySize = Atlas.SPRITE_BODY.w * scale;
-        const footW = Atlas.SPRITE_FOOT.w * Atlas.FOOT_SCALE_X * scale;
-        const footH = Atlas.SPRITE_FOOT.h * Atlas.FOOT_SCALE_Y * scale;
-        const footDx = Atlas.FOOT_OFFSET_X * scale * flipX;
-        const footDy = Atlas.FOOT_OFFSET_Y * scale;
+        const bodySize = Atlas.SPRITE_BODY.w * spriteScale * (this._fat ? Atlas.FAT_BODY_SCALE : 1);
+        const footW = Atlas.SPRITE_FOOT.w * Atlas.FOOT_SCALE_X * spriteScale;
+        const footH = Atlas.SPRITE_FOOT.h * Atlas.FOOT_SCALE_Y * spriteScale;
+
+        const backFootPos = {
+            x: centerX + animationFrame.backFoot.x * animationScale,
+            y: centerY + animationFrame.backFoot.y * animationScale,
+        };
+        const frontFootPos = {
+            x: centerX + animationFrame.frontFoot.x * animationScale,
+            y: centerY + animationFrame.frontFoot.y * animationScale,
+        };
 
         // Eye sprite selection
         const eyeSprites: Record<string, Atlas.SpriteRegion> = {
@@ -540,31 +659,80 @@ export class TeeRenderer {
             blink: Atlas.SPRITE_EYE_NORMAL,
         };
         const eyeSprite = eyeSprites[eyeType] ?? Atlas.SPRITE_EYE_NORMAL;
-        const eyeSize = Atlas.SPRITE_EYE_NORMAL.w * Atlas.EYE_SCALE * scale;
+        const eyeSize = Atlas.SPRITE_EYE_NORMAL.w * Atlas.EYE_SCALE * spriteScale;
         const eyeH = eyeType === 'blink' ? eyeSize * 0.375 : eyeSize;
-        const eyeSep = Atlas.EYE_SEPARATION * scale * flipX;
-        const eyeY = centerY - size * 0.125 + Atlas.BODY_OFFSET_Y * scale;
+        const eyeSep = Atlas.EYE_SEPARATION * spriteScale;
+        const eyeY = bodyPos.y - size * 0.125;
+        const bodyRotation = animationFrame.body.angle * Math.PI * 2;
 
         // Rendering order (DDNet RenderTee6):
         // 0: back foot outline
-        drawSprite(Atlas.SPRITE_FOOT_OUTLINE, centerX - footDx, centerY + footDy, footW, footH);
+        drawSprite(
+            Atlas.SPRITE_FOOT_OUTLINE,
+            backFootPos.x,
+            backFootPos.y,
+            footW,
+            footH,
+            animationFrame.backFoot.angle * Math.PI * 2,
+        );
         // 1: body outline
-        drawSprite(Atlas.SPRITE_BODY_OUTLINE, centerX, bodyY, bodySize, bodySize);
+        drawSprite(
+            Atlas.SPRITE_BODY_OUTLINE,
+            bodyPos.x,
+            bodyPos.y,
+            bodySize,
+            bodySize,
+            bodyRotation,
+        );
         // 2: front foot outline
-        drawSprite(Atlas.SPRITE_FOOT_OUTLINE, centerX + footDx, centerY + footDy, footW, footH);
+        drawSprite(
+            Atlas.SPRITE_FOOT_OUTLINE,
+            frontFootPos.x,
+            frontFootPos.y,
+            footW,
+            footH,
+            animationFrame.frontFoot.angle * Math.PI * 2,
+        );
         // 3: back foot fill
-        drawSprite(Atlas.SPRITE_FOOT, centerX - footDx, centerY + footDy, footW, footH);
+        drawSprite(
+            Atlas.SPRITE_FOOT,
+            backFootPos.x,
+            backFootPos.y,
+            footW,
+            footH,
+            animationFrame.backFoot.angle * Math.PI * 2,
+        );
         // 4: body fill
-        drawSprite(Atlas.SPRITE_BODY, centerX, bodyY, bodySize, bodySize);
+        drawSprite(
+            Atlas.SPRITE_BODY,
+            bodyPos.x,
+            bodyPos.y,
+            bodySize,
+            bodySize,
+            bodyRotation,
+        );
         // 5: eyes
-        drawSprite(eyeSprite, centerX - eyeSep, eyeY, eyeSize, eyeH);
-        drawSprite(eyeSprite, centerX + eyeSep, eyeY, eyeSize, eyeH, true);
+        drawSprite(eyeSprite, bodyPos.x - eyeSep, eyeY, eyeSize, eyeH, bodyRotation);
+        drawSprite(eyeSprite, bodyPos.x + eyeSep, eyeY, eyeSize, eyeH, bodyRotation, true);
         // 6: front foot fill
-        drawSprite(Atlas.SPRITE_FOOT, centerX + footDx, centerY + footDy, footW, footH);
+        drawSprite(
+            Atlas.SPRITE_FOOT,
+            frontFootPos.x,
+            frontFootPos.y,
+            footW,
+            footH,
+            animationFrame.frontFoot.angle * Math.PI * 2,
+        );
     }
 
     public destroy() {
         this.followMouse = false;
+
+        if (this._animationFrameId !== null) {
+            cancelAnimationFrame(this._animationFrameId);
+            this._animationFrameId = null;
+        }
+        this._animationLastTimestamp = null;
 
         if (this._currentObjectUrl) {
             URL.revokeObjectURL(this._currentObjectUrl);
@@ -580,6 +748,20 @@ export class TeeRenderer {
         this._offscreenContext = null;
         this._cachedColorKey = null;
         this._skinLoadedCallback = null;
+
+        for (const property of [
+            '--tee-body-x',
+            '--tee-body-y',
+            '--tee-body-angle',
+            '--tee-back-foot-x',
+            '--tee-back-foot-y',
+            '--tee-back-foot-angle',
+            '--tee-front-foot-x',
+            '--tee-front-foot-y',
+            '--tee-front-foot-angle',
+        ]) {
+            this._container.style.removeProperty(property);
+        }
 
         this.setSkinVariableValue(null);
         this._container.classList.remove('tee_initialized', 'tee_rendered');
@@ -696,7 +878,12 @@ export async function initializeAsync(simultaneously: boolean = true) {
         followMouse: container.dataset.followMouse !== undefined
             ? container.dataset.followMouse === 'true'
             : undefined,
-        direction: container.dataset.direction as TeeDirection | undefined,
+        speed: container.dataset.speed !== undefined
+            ? Number(container.dataset.speed)
+            : undefined,
+        inAir: container.dataset.inAir !== undefined
+            ? container.dataset.inAir === 'true'
+            : undefined,
         fat: container.dataset.fat !== undefined
             ? container.dataset.fat === 'true'
             : undefined,
@@ -748,8 +935,12 @@ export async function createAsync(config: TeeRendererConfig): Promise<TeeContain
         container.dataset.followMouse = config.followMouse ? 'true' : 'false';
     }
 
-    if (config.direction !== undefined) {
-        container.dataset.direction = config.direction;
+    if (config.speed !== undefined) {
+        container.dataset.speed = String(config.speed);
+    }
+
+    if (config.inAir !== undefined) {
+        container.dataset.inAir = config.inAir ? 'true' : 'false';
     }
 
     if (config.fat !== undefined) {

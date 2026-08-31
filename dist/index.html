@@ -7,7 +7,7 @@
     <title>TeeSkinRenderer</title>
     <link rel="icon" type="image/svg+xml" href="./tee.svg" />
     <link href="./tee-skin-renderer.css" rel="stylesheet">
-    <link rel="preload" as="image" href="https://skins.ddnet.org/skin/community/default.png">
+    <link rel="preload" as="image" href="https://ddstats.tw/skins/default.png">
     <style>
         *, *::before, *::after {
             box-sizing: border-box;
@@ -261,29 +261,75 @@
             color: #a5b4fc;
         }
 
-        .direction-btns {
+        .speed-control {
             display: flex;
-            gap: 6px;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .dir-btn {
+        .speed-control-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+        }
+
+        .speed-control-header .panel-title {
+            margin-bottom: 0;
+        }
+
+        .speed-readout {
+            color: #a5b4fc;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 11px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .speed-range {
+            width: 100%;
+            height: 5px;
+            margin: 8px 0 2px;
+            accent-color: #6366f1;
+            cursor: pointer;
+        }
+
+        .speed-range:focus-visible {
+            outline: 2px solid rgba(99, 102, 241, 0.6);
+            outline-offset: 4px;
+        }
+
+        .speed-scale {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 10px;
+        }
+
+        .animation-btns {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .animation-btn {
             flex: 1;
-            padding: 10px;
+            min-width: 64px;
+            padding: 9px 8px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.04);
             color: #888;
-            font-size: 18px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.15s ease;
             text-align: center;
         }
 
-        .dir-btn:hover {
+        .animation-btn:hover {
             background: rgba(255, 255, 255, 0.08);
         }
 
-        .dir-btn.active {
+        .animation-btn.active {
             background: rgba(99, 102, 241, 0.12);
             border-color: rgba(99, 102, 241, 0.4);
             color: #a5b4fc;
@@ -510,7 +556,7 @@
                 <div
                     id="tee"
                     class="tee"
-                    data-skin="https://skins.ddnet.org/skin/community/pinky.png"
+                    data-skin="https://ddstats.tw/skins/pinky.png"
                     data-color-body="5498880"
                     data-color-feet="3079936">
                 </div>
@@ -524,7 +570,7 @@
                 <input
                     id="skinUrl"
                     type="text"
-                    value="https://skins.ddnet.org/skin/community/pinky.png"
+                    value="https://ddstats.tw/skins/pinky.png"
                     placeholder="Skin URL..."
                     spellcheck="false"
                 />
@@ -549,11 +595,36 @@
                 <div class="eyes-grid" id="eyesGrid"></div>
             </div>
 
+            <div class="field speed-control">
+                <div class="speed-control-header">
+                    <span class="panel-title">Speed</span>
+                    <output id="speedReadout" class="speed-readout" aria-live="polite">0 u/t · Idle</output>
+                </div>
+                <input
+                    id="speedRange"
+                    class="speed-range"
+                    type="range"
+                    min="-30"
+                    max="30"
+                    step="1"
+                    value="0"
+                    aria-label="Horizontal tee speed in DDNet units per tick"
+                />
+                <div class="speed-scale" aria-hidden="true">
+                    <span>-30</span>
+                    <span>0</span>
+                    <span>+30</span>
+                </div>
+            </div>
+
             <div class="field">
-                <span class="panel-title">Direction</span>
-                <div class="direction-btns">
-                    <button class="dir-btn" data-dir="left">&#8592;</button>
-                    <button class="dir-btn active" data-dir="right">&#8594;</button>
+                <span class="panel-title">Animation</span>
+                <div class="animation-btns">
+                    <button class="animation-btn active" data-speed="0">Idle</button>
+                    <button class="animation-btn" data-speed="10">Walk</button>
+                    <button class="animation-btn" data-speed="20">Run</button>
+                    <button class="animation-btn" data-speed="-20">Reverse</button>
+                    <button class="animation-btn" data-speed="0" data-in-air="true">Jump</button>
                 </div>
             </div>
 
@@ -593,10 +664,11 @@
 &lt;script src="tee-skin-renderer.umd.js"&gt;&lt;/script&gt;
 
 &lt;div class="tee"
-     data-skin="https://skins.ddnet.org/skin/community/pinky.png"
+     data-skin="https://ddstats.tw/skins/pinky.png"
      data-color-body="5498880"
      data-color-feet="3079936"
      data-eyes="happy"
+     data-speed="10"
      data-follow-mouse="true"&gt;
 &lt;/div&gt;
 
@@ -615,10 +687,11 @@
             </div>
             <div class="example-content">
                 <pre class="code"><code>const container = await TeeSkinRenderer.createAsync({
-  skinUrl: 'https://skins.ddnet.org/skin/community/pinky.png',
+  skinUrl: 'https://ddstats.tw/skins/pinky.png',
   colorBody: 5498880,
   colorFeet: 3079936,
   eyes: 'happy',
+  speed: 10,
   followMouse: true,
 });
 
@@ -630,22 +703,23 @@ document.body.appendChild(container);</code></pre>
         <div class="example">
             <div class="example-header">
                 <span class="example-label">Dynamic Properties</span>
-                <span class="example-desc">Change skin, colors, eyes and direction at runtime</span>
+                <span class="example-desc">Change skin, colors, eyes and animation at runtime</span>
             </div>
             <div class="example-content">
                 <pre class="code"><code>const container = await TeeSkinRenderer.createAsync({
-  skinUrl: 'https://skins.ddnet.org/skin/community/default.png',
+  skinUrl: 'https://ddstats.tw/skins/default.png',
 });
 
 // Access the renderer via container.tee
 const tee = container.tee;
 
-tee.skinUrl   = 'https://skins.ddnet.org/skin/community/pinky.png';
+tee.skinUrl   = 'https://ddstats.tw/skins/pinky.png';
 tee.colorBody = 16768387;
 tee.colorFeet = 16777215;
 tee.useCustomColor = true;
 tee.eyes      = 'surprise';
-tee.direction = 'left';
+tee.speed     = -20; // reverse leg animation
+tee.inAir     = false;
 tee.fat       = true;</code></pre>
                 <div class="example-preview" id="preview-dynamic"></div>
             </div>
@@ -658,7 +732,7 @@ tee.fat       = true;</code></pre>
             </div>
             <div class="example-content">
                 <pre class="code"><code>const container = await TeeSkinRenderer.createAsync({
-  skinUrl: 'https://skins.ddnet.org/skin/community/pinky.png',
+  skinUrl: 'https://ddstats.tw/skins/pinky.png',
   colorBody: 53063,
   colorFeet: 524159,
 });
@@ -684,16 +758,16 @@ container.tee.addEventListener('tee:rendered', (e) => {
             </div>
             <div class="example-content">
                 <pre class="code"><code>const container = await TeeSkinRenderer.createAsync({
-  skinUrl: 'https://skins.ddnet.org/skin/community/pinky.png',
+  skinUrl: 'https://ddstats.tw/skins/pinky.png',
   colorBody: 5498880,
   colorFeet: 3079936,
+  speed: 10,
 });
 
 const canvas = document.createElement('canvas');
 container.tee.renderToCanvas(canvas, {
   size: 128,
   eyes: 'happy',
-  direction: 'right',
 });
 
 document.body.appendChild(canvas);</code></pre>
@@ -756,7 +830,7 @@ const rgba = color.convertTeeColorToRgba(teeColor);
 
 for (const eye of eyes) {
   const container = await TeeSkinRenderer.createAsync({
-    skinUrl: 'https://skins.ddnet.org/skin/community/pinky.png',
+    skinUrl: 'https://ddstats.tw/skins/pinky.png',
     eyes: eye,
   });
   gallery.appendChild(container);
@@ -779,6 +853,8 @@ for (const eye of eyes) {
         const elColorFeet = document.getElementById('colorFeet');
         const elColorBodyPreview = document.getElementById('colorBodyPreview');
         const elColorFeetPreview = document.getElementById('colorFeetPreview');
+        const elSpeedRange = document.getElementById('speedRange');
+        const elSpeedReadout = document.getElementById('speedReadout');
 
         const presets = [
             { skin: 'pinky.png', body: 5498880, feet: 3079936, custom: true },
@@ -823,11 +899,11 @@ for (const eye of eyes) {
             const btn = document.createElement('button');
             btn.className = 'preset' + (i === 0 ? ' active' : '');
             const attrs = p.custom ? ` data-color-body="${p.body}" data-color-feet="${p.feet}"` : ' data-use-custom-color="false"';
-            btn.innerHTML = `<div class="tee" data-skin="https://skins.ddnet.org/skin/community/${p.skin}"${attrs} data-follow-mouse="true"></div>`;
+            btn.innerHTML = `<div class="tee" data-skin="https://ddstats.tw/skins/${p.skin}"${attrs} data-follow-mouse="true"></div>`;
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.preset').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                const url = `https://skins.ddnet.org/skin/community/${p.skin}`;
+                const url = `https://ddstats.tw/skins/${p.skin}`;
                 elSkinUrl.value = url;
                 elTee.tee.skinUrl = url;
                 elTee.tee.useCustomColor = p.custom;
@@ -860,7 +936,7 @@ for (const eye of eyes) {
         // Eyes
         const eyeTypes = ['normal', 'happy', 'angry', 'pain', 'surprise', 'dead', 'blink'];
         const elEyesGrid = document.getElementById('eyesGrid');
-        const skinUrl = 'https://skins.ddnet.org/skin/community/pinky.png';
+        const skinUrl = 'https://ddstats.tw/skins/pinky.png';
 
         eyeTypes.forEach((eye, i) => {
             const btn = document.createElement('button');
@@ -878,14 +954,54 @@ for (const eye of eyes) {
             elTee.tee.eyes = btn.dataset.eye;
         });
 
-        // Direction
-        document.querySelectorAll('.dir-btn').forEach(btn => {
+        // Animation and speed selector
+        const STATIONARY_SPEED = 1 / 256;
+        const RUN_SPEED = 5000 / 256;
+
+        function getAnimationLabel(speed, inAir) {
+            if (inAir) return 'Jump';
+            if (Math.abs(speed) <= STATIONARY_SPEED) return 'Idle';
+            const mode = Math.abs(speed) >= RUN_SPEED ? 'Run' : 'Walk';
+            return speed < 0 ? `${mode} reverse` : mode;
+        }
+
+        function updateAnimationControls() {
+            const speed = elTee.tee.speed;
+            const inAir = elTee.tee.inAir;
+            const roundedSpeed = Math.round(speed);
+            const sign = roundedSpeed > 0 ? '+' : '';
+
+            elSpeedRange.value = String(roundedSpeed);
+            elSpeedReadout.textContent = `${sign}${roundedSpeed} u/t · ${getAnimationLabel(speed, inAir)}`;
+
+            document.querySelectorAll('.animation-btn').forEach(btn => {
+                const buttonSpeed = Number(btn.dataset.speed);
+                const buttonInAir = btn.dataset.inAir === 'true';
+                btn.classList.toggle('active', buttonSpeed === roundedSpeed && buttonInAir === inAir);
+            });
+        }
+
+        function setAnimation(speed, inAir = false) {
+            elTee.tee.inAir = inAir;
+            elTee.tee.speed = speed;
+            updateAnimationControls();
+        }
+
+        elSpeedRange.addEventListener('input', () => {
+            setAnimation(Number(elSpeedRange.value));
+        });
+
+        document.querySelectorAll('.animation-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                elTee.tee.direction = btn.dataset.dir;
+                setAnimation(Number(btn.dataset.speed), btn.dataset.inAir === 'true');
             });
         });
+
+        if (elTee.tee) {
+            updateAnimationControls();
+        } else {
+            document.addEventListener('DOMContentLoaded', updateAnimationControls, { once: true });
+        }
 
         // Fat
         const elToggleFat = document.getElementById('toggleFat');
@@ -908,7 +1024,7 @@ for (const eye of eyes) {
             elToggleFollow.classList.toggle('active', this.checked);
         });
         // === Code examples: live previews ===
-        const SKIN = 'https://skins.ddnet.org/skin/community/pinky.png';
+        const SKIN = 'https://ddstats.tw/skins/pinky.png';
 
         // 1. HTML auto-init preview
         TeeSkinRenderer.createAsync({
@@ -916,6 +1032,7 @@ for (const eye of eyes) {
             colorBody: 5498880,
             colorFeet: 3079936,
             eyes: 'happy',
+            speed: 10,
             followMouse: true,
         }).then(c => document.getElementById('preview-html').appendChild(c));
 
@@ -930,7 +1047,7 @@ for (const eye of eyes) {
 
         // 3. Dynamic properties
         TeeSkinRenderer.createAsync({
-            skinUrl: 'https://skins.ddnet.org/skin/community/default.png',
+            skinUrl: 'https://ddstats.tw/skins/default.png',
         }).then(c => {
             document.getElementById('preview-dynamic').appendChild(c);
             setTimeout(() => {
@@ -939,7 +1056,7 @@ for (const eye of eyes) {
                 c.tee.colorFeet = 16777215;
                 c.tee.useCustomColor = true;
                 c.tee.eyes = 'surprise';
-                c.tee.direction = 'left';
+                c.tee.speed = -20;
                 c.tee.fat = true;
             }, 800);
         });
@@ -974,6 +1091,7 @@ for (const eye of eyes) {
             skinUrl: SKIN,
             colorBody: 5498880,
             colorFeet: 3079936,
+            speed: 10,
         }).then(c => {
             c.tee.addEventListener('tee:rendered', () => {
                 const canvas = document.createElement('canvas');

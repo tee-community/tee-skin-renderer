@@ -1,5 +1,17 @@
 .tee {
     --skin: none;
+    --tee-body-x: 0em;
+    --tee-body-y: -6em;
+    --tee-body-angle: 0rad;
+    --tee-body-scale: 1;
+    --tee-back-foot-x: -10.5em;
+    --tee-back-foot-y: 15em;
+    --tee-back-foot-angle: 0rad;
+    --tee-front-foot-x: 10.5em;
+    --tee-front-foot-y: 15em;
+    --tee-front-foot-angle: 0rad;
+    --tee-eye-follow-x: 0px;
+    --tee-eye-follow-y: 0px;
 
     font-size: 1px;
     width: 96em;
@@ -33,7 +45,10 @@
     top: 50%;
     left: 50%;
     position: absolute;
-    transform: translate(-50%, calc(-50% - 6em));
+    transform:
+        translate(calc(-50% + var(--tee-body-x)), calc(-50% + var(--tee-body-y)))
+        rotate(var(--tee-body-angle))
+        scale(var(--tee-body-scale));
     transition: background-image 200ms ease-in-out;
 }
 
@@ -55,7 +70,10 @@
     position: absolute;
     top: 37.5%;
     left: 50%;
-    transform: translate(0px, 0px);
+    transform:
+        translate(var(--tee-eye-follow-x), var(--tee-eye-follow-y))
+        translate(var(--tee-body-x), calc(var(--tee-body-y) + 6em))
+        rotate(var(--tee-body-angle));
     transition: transform 150ms ease-out;
 }
 
@@ -147,11 +165,17 @@
 }
 
 .tee__foot_back {
-    transform: translate(calc(-50% - 10.5em), calc(-50% + 15em)) scale(1.5);
+    transform:
+        translate(calc(-50% + var(--tee-back-foot-x)), calc(-50% + var(--tee-back-foot-y)))
+        rotate(var(--tee-back-foot-angle))
+        scale(1.5);
 }
 
 .tee__foot_front {
-    transform: translate(calc(-50% + 10.5em), calc(-50% + 15em)) scale(1.5);
+    transform:
+        translate(calc(-50% + var(--tee-front-foot-x)), calc(-50% + var(--tee-front-foot-y)))
+        rotate(var(--tee-front-foot-angle))
+        scale(1.5);
 }
 
 /*       */
@@ -204,39 +228,17 @@
     z-index: 6;
 }
 
-/*           */
-/* DIRECTION */
-/*           */
-
-.tee_facing-left {
-    transform: scaleX(-1);
-}
-
 /*     */
 /* FAT */
 /*     */
 
-.tee_fat::before,
-.tee_fat::after {
-    transform: translate(-50%, calc(-50% - 6em)) scale(1.3);
+.tee_fat {
+    --tee-body-scale: 1.3;
 }
 
 /*     */
 /* AFK */
 /*     */
-
-.tee_afk::before,
-.tee_afk::after {
-    transform: translate(-50%, calc(-50% - 1.5em));
-}
-
-.tee_afk .tee__foot_back {
-    transform: translate(calc(-50% + 18em), calc(-50% + 15em)) scale(1.5) rotate(-36deg);
-}
-
-.tee_afk .tee__foot_front {
-    transform: translate(calc(-50% + 12em), calc(-50% + 15em)) scale(1.5) rotate(-36deg);
-}
 
 .tee_afk .tee__eyes::before {
     transform: scale(1.2, 0.45);
@@ -244,11 +246,6 @@
 
 .tee_afk .tee__eyes::after {
     transform: scale(-1.2, 0.45);
-}
-
-.tee_afk.tee_fat::before,
-.tee_afk.tee_fat::after {
-    transform: translate(-50%, calc(-50% - 1.5em)) scale(1.3);
 }
 
 /*        */
