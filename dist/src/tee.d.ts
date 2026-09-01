@@ -95,8 +95,11 @@ export declare class TeeRenderer {
     set afk(value: boolean);
     get followMouse(): boolean;
     set followMouse(state: boolean);
+    /** The active custom playback, including a forwards-filled final pose, or null. */
     get currentAnimation(): TeeAnimationController | null;
+    /** Starts a custom animation, replacing any custom playback already active on this tee. */
     playAnimation(definition: TeeAnimationDefinition, options?: TeeAnimationPlayOptions): TeeAnimationController;
+    /** Stops the active custom animation and restores the current built-in DDNet pose. */
     stopAnimation(): void;
     private releaseCustomAnimation;
     private mouseFollowThrottleCallbackFactory;

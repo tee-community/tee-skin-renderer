@@ -172,7 +172,11 @@ tee.inAir = false;
 
 ### Custom animations
 
-Custom animations are programmatic and temporarily replace the visible DDNet pose. The built-in `idle`, `walk`, `run`, `sit` and `inAir` animations are fixed and cannot be redefined. When a custom animation stops, the renderer returns to the current built-in pose; its movement phase keeps advancing in the background.
+Custom animations are programmatic and temporarily replace the visible DDNet pose. The built-in `idle`, `walk`, `run`, `sit` and `inAir` animations are fixed and cannot be redefined. Create a separate animation when you need different behavior.
+
+While a custom animation is visible, the built-in movement phase keeps advancing in the background. Stopping the custom animation therefore returns the tee to the current DDNet pose without restarting its walk or run cycle.
+
+#### Keyframe animations
 
 Define a reusable keyframe animation and play it on any tee:
 
@@ -223,6 +227,8 @@ const result = await playback.finished;
 console.log(result.reason); // "stopped"
 ```
 
+#### Procedural animations
+
 For procedural motion, return a pose for each frame. The callback receives animation time plus the tee's current movement state:
 
 ```js
@@ -251,11 +257,112 @@ container.tee.playAnimation(hover, {
 });
 ```
 
-In a UMD build, define animations with `TeeSkinRenderer.animation.define(...)` or `TeeSkinRenderer.defineAnimation(...)`.
+#### UMD usage
 
-Keyframe `time` is normalized from `0` to `1`. Transform `x`/`y` values use DDNet's 64-unit tee coordinates, `angle` uses turns (`0.25` is 90°), and `scale` is a multiplier where `1` is unchanged. Missing transform fields use neutral values (`0` for position/angle, `1` for scale). Eyes are switched discretely. Supported easing values are `linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out`, or `[x1, y1, x2, y2]` cubic-bezier values.
+Use `TeeSkinRenderer.animation.define(...)` in a script build. `TeeSkinRenderer.defineAnimation(...)` is an equivalent direct export.
 
-Definitions accept `loop` and `fill`. The default `fill: 'none'` restores the DDNet pose after completion; `fill: 'forwards'` holds the final custom pose until `stopAnimation()` or another custom animation starts. Playback options can override `loop` and `fill`. Starting another custom animation completes the old controller with reason `replaced`.
+```html
+<link rel="stylesheet" href="https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.css">
+<script src="https://unpkg.com/tee-skin-renderer/dist/tee-skin-renderer.umd.js"></script>
+<script>
+    const blink = TeeSkinRenderer.animation.define({
+        kind: 'keyframes',
+        duration: 300,
+        tracks: {
+            eyes: [
+                { time: 0, eyes: 'normal' },
+                { time: 0.5, eyes: 'blink' },
+                { time: 1, eyes: 'normal' },
+            ],
+        },
+    });
+
+    TeeSkinRenderer.createAsync({
+        skinUrl: 'https://ddstats.tw/skins/pinky.png',
+    }).then((container) => {
+        document.body.appendChild(container);
+        container.tee.playAnimation(blink);
+    });
+</script>
+```
+
+Custom animations do not have a data attribute or global name registry. Keep the returned definition in your application and pass it directly to `playAnimation()`.
+
+#### Definition reference
+
+Every animation definition supports these fields:
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `kind` | `'keyframes' \| 'callback'` | required | Selects keyframe tracks or a procedural callback |
+| `name` | `string` | — | Optional label for debugging and UI; it does not register or override an animation |
+| `duration` | `number` | required | Duration of one iteration in milliseconds; must be greater than zero |
+| `loop` | `boolean` | `false` | Repeats the animation until stopped |
+| `fill` | `'none' \| 'forwards'` | `'none'` | Restores the DDNet pose or holds the final custom pose after completion |
+
+Keyframe definitions additionally accept `tracks` and an animation-wide `easing`. Tracks are independent:
+
+| Track | Keyframe shape | Description |
+|---|---|---|
+| `body` | `{ time, x?, y?, angle?, scale?, easing? }` | Body transform |
+| `backFoot` | `{ time, x?, y?, angle?, scale?, easing? }` | Back foot transform |
+| `frontFoot` | `{ time, x?, y?, angle?, scale?, easing? }` | Front foot transform |
+| `eyes` | `{ time, eyes }` | Discrete eye-type changes |
+
+`time` is normalized from `0` to `1`. Keyframes may be supplied in any order, but duplicate times are invalid. A single keyframe or values outside the first/last keyframe are held without interpolation.
+
+Transform values are offsets from the neutral tee pose:
+
+| Field | Neutral value | Unit |
+|---|---:|---|
+| `x` | `0` | DDNet's 64-unit tee coordinate space |
+| `y` | `0` | DDNet's 64-unit tee coordinate space |
+| `angle` | `0` | Turns; `0.25` equals 90 degrees |
+| `scale` | `1` | Multiplier |
+
+Missing transform fields use their neutral value at each keyframe; values are not implicitly copied from the previous keyframe. Eye frames switch discretely and support `normal`, `angry`, `pain`, `happy`, `dead`, `surprise` and `blink`.
+
+Animation-wide and per-keyframe easing supports `linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out`, or `[x1, y1, x2, y2]`. A keyframe's `easing` controls interpolation from that keyframe to the next one.
+
+#### Callback context
+
+A callback definition uses `frame(context)` and returns the same `{ body, backFoot, frontFoot, eyes }` pose shape:
+
+| Context field | Description |
+|---|---|
+| `progress` | Current iteration progress from `0` to `1` |
+| `elapsedMs` | Total playback position in milliseconds, including completed loop iterations |
+| `deltaMs` | Playback-adjusted frame delta, capped at 100 ms |
+| `iteration` | Zero-based loop iteration |
+| `speed` | Current signed DDNet horizontal speed |
+| `inAir` | Current jump/fall state |
+| `afk` | Current AFK state |
+
+If a callback throws or returns an invalid pose, playback ends with reason `error` and the renderer restores the built-in DDNet pose.
+
+#### Playback options and controller
+
+`tee.playAnimation(definition, options?)` starts an animation and returns a controller. Starting another custom animation replaces the previous one.
+
+| Playback option | Default | Description |
+|---|---:|---|
+| `loop` | definition value | Overrides looping for this playback |
+| `fill` | definition value | Overrides `none`/`forwards` for this playback |
+| `playbackRate` | `1` | Positive timeline speed multiplier |
+| `startAt` | `0` | Initial timeline position in milliseconds |
+
+| Controller member | Description |
+|---|---|
+| `definition` | Normalized, frozen animation definition |
+| `playState` | `running`, `paused`, `finished` or `stopped` |
+| `currentTime` | Current timeline position in milliseconds |
+| `progress` | Current iteration progress from `0` to `1` |
+| `pause()` / `resume()` | Pauses or continues timeline advancement |
+| `seek(timeMs)` | Moves playback to an absolute timeline position |
+| `stop()` | Stops playback and restores the built-in pose |
+| `finished` | Promise that always resolves with `{ reason, error? }` |
+
+Completion reasons are `completed`, `stopped`, `replaced`, `destroyed` and `error`. The promise never rejects. With `fill: 'forwards'`, `playState` becomes `finished` while the final pose remains active; call `stop()`, `tee.stopAnimation()`, or start another animation to release it.
 
 ## Skin Format
 

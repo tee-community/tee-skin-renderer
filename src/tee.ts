@@ -332,10 +332,12 @@ export class TeeRenderer {
         }
     }
 
+    /** The active custom playback, including a forwards-filled final pose, or null. */
     public get currentAnimation(): TeeAnimationController | null {
         return this._customAnimation;
     }
 
+    /** Starts a custom animation, replacing any custom playback already active on this tee. */
     public playAnimation(
         definition: TeeAnimationDefinition,
         options: TeeAnimationPlayOptions = {},
@@ -361,6 +363,7 @@ export class TeeRenderer {
         return controller;
     }
 
+    /** Stops the active custom animation and restores the current built-in DDNet pose. */
     public stopAnimation(): void {
         this._customAnimation?.stop();
     }
