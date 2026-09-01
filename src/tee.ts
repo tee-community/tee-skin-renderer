@@ -460,7 +460,6 @@ export class TeeRenderer {
         }
 
         if (this._animationFrameId === null) {
-            this._animationLastTimestamp = null;
             this._animationFrameId = requestAnimationFrame(this._animationFrameCallback);
         }
     }

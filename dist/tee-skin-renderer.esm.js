@@ -1204,7 +1204,7 @@ var ge = /* @__PURE__ */ t({
 			this._animationFrameId !== null && (cancelAnimationFrame(this._animationFrameId), this._animationFrameId = null), this._animationLastTimestamp = null;
 			return;
 		}
-		this._animationFrameId === null && (this._animationLastTimestamp = null, this._animationFrameId = requestAnimationFrame(this._animationFrameCallback));
+		this._animationFrameId === null && (this._animationFrameId = requestAnimationFrame(this._animationFrameCallback));
 	}
 	get skinUrl() {
 		return this._skinUrl;

@@ -186,30 +186,32 @@ import { createAsync, defineAnimation } from 'tee-skin-renderer';
 const bounce = defineAnimation({
     kind: 'keyframes',
     name: 'bounce',
-    duration: 800,
+    duration: 900,
     loop: true,
     easing: 'ease-in-out',
     tracks: {
         body: [
-            { time: 0, y: 0, scale: 1 },
-            { time: 0.5, y: -12, scale: 1.08 },
-            { time: 1, y: 0, scale: 1 },
+            { time: 0, y: 0 },
+            { time: 0.2, y: 0 },
+            { time: 0.5, y: -6 },
+            { time: 0.8, y: 0 },
+            { time: 1, y: 0 },
         ],
         backFoot: [
-            { time: 0, angle: -0.04 },
-            { time: 0.5, y: -3, angle: 0.04 },
-            { time: 1, angle: -0.04 },
+            { time: 0, x: -7, y: 0, angle: 0 },
+            { time: 0.2, x: -7, y: 0, angle: 0 },
+            { time: 0.5, x: -6, y: -4, angle: -0.05 },
+            { time: 0.8, x: -7, y: 0, angle: 0 },
+            { time: 1, x: -7, y: 0, angle: 0 },
         ],
         frontFoot: [
-            { time: 0, angle: 0.04 },
-            { time: 0.5, y: -3, angle: -0.04 },
-            { time: 1, angle: 0.04 },
+            { time: 0, x: 7, y: 0, angle: 0 },
+            { time: 0.2, x: 7, y: 0, angle: 0 },
+            { time: 0.5, x: 6, y: -4, angle: 0.05 },
+            { time: 0.8, x: 7, y: 0, angle: 0 },
+            { time: 1, x: 7, y: 0, angle: 0 },
         ],
-        eyes: [
-            { time: 0, eyes: 'happy' },
-            { time: 0.8, eyes: 'blink' },
-            { time: 1, eyes: 'happy' },
-        ],
+        eyes: [{ time: 0, eyes: 'happy' }],
     },
 });
 
@@ -232,26 +234,26 @@ console.log(result.reason); // "stopped"
 For procedural motion, return a pose for each frame. The callback receives animation time plus the tee's current movement state:
 
 ```js
-const hover = defineAnimation({
+const hop = defineAnimation({
     kind: 'callback',
-    name: 'hover',
-    duration: 1200,
+    name: 'hop',
+    duration: 900,
     loop: true,
-    frame({ progress, elapsedMs, deltaMs, iteration, speed, inAir, afk }) {
-        const wave = Math.sin(progress * Math.PI * 2);
+    frame({ progress, speed, inAir }) {
+        const lift = Math.sin(progress * Math.PI) ** 2;
 
         return {
-            body: { y: wave * 5, angle: wave * 0.02 },
-            backFoot: { y: -wave * 3, angle: -wave * 0.06 },
-            frontFoot: { y: wave * 3, angle: wave * 0.06 },
-            eyes: inAir || afk || Math.abs(speed) >= 5000 / 256
+            body: { y: -5 * lift },
+            backFoot: { x: -7 + lift, y: -3 * lift, angle: -0.04 * lift },
+            frontFoot: { x: 7 - lift, y: -3 * lift, angle: 0.04 * lift },
+            eyes: inAir || Math.abs(speed) >= 5000 / 256
                 ? 'surprise'
-                : 'normal',
+                : 'happy',
         };
     },
 });
 
-container.tee.playAnimation(hover, {
+container.tee.playAnimation(hop, {
     playbackRate: 1,
     startAt: 0,
 });

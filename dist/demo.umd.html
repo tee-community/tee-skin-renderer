@@ -749,24 +749,35 @@ tee.fat       = true;</code></pre>
         <div class="example">
             <div class="example-header">
                 <span class="example-label">Custom Keyframes</span>
-                <span class="example-desc">Animate body, feet and eyes with normalized keyframes</span>
+                <span class="example-desc">A gentle hop built from normalized transform tracks</span>
             </div>
             <div class="example-content">
                 <pre class="code"><code>const bounce = TeeSkinRenderer.animation.define({
   kind: 'keyframes',
-  duration: 800,
+  duration: 900,
   loop: true,
   easing: 'ease-in-out',
   tracks: {
     body: [
-      { time: 0,   y: 0 },
-      { time: 0.5, y: -12, scale: 1.08 },
-      { time: 1,   y: 0 },
+      { time: 0,   y: 0 }, { time: 0.2, y: 0 },
+      { time: 0.5, y: -6 },
+      { time: 0.8, y: 0 }, { time: 1,   y: 0 },
     ],
-    eyes: [
-      { time: 0,   eyes: 'happy' },
-      { time: 0.8, eyes: 'blink' },
+    backFoot: [
+      { time: 0,   x: -7, y: 0 },
+      { time: 0.2, x: -7, y: 0 },
+      { time: 0.5, x: -6, y: -4, angle: -0.05 },
+      { time: 0.8, x: -7, y: 0 },
+      { time: 1,   x: -7, y: 0 },
     ],
+    frontFoot: [
+      { time: 0,   x: 7, y: 0 },
+      { time: 0.2, x: 7, y: 0 },
+      { time: 0.5, x: 6, y: -4, angle: 0.05 },
+      { time: 0.8, x: 7, y: 0 },
+      { time: 1,   x: 7, y: 0 },
+    ],
+    eyes: [{ time: 0, eyes: 'happy' }],
   },
 });
 
@@ -782,27 +793,27 @@ controller.stop();</code></pre>
         <div class="example">
             <div class="example-header">
                 <span class="example-label">Procedural Callback</span>
-                <span class="example-desc">Calculate each pose from time and renderer state</span>
+                <span class="example-desc">The same gentle hop calculated for every frame</span>
             </div>
             <div class="example-content">
-                <pre class="code"><code>const hover = TeeSkinRenderer.animation.define({
+                <pre class="code"><code>const hop = TeeSkinRenderer.animation.define({
   kind: 'callback',
-  duration: 1200,
+  duration: 900,
   loop: true,
   frame({ progress, speed, inAir }) {
-    const wave = Math.sin(progress * Math.PI * 2);
+    const lift = Math.sin(progress * Math.PI) ** 2;
     return {
-      body: { y: wave * 5, angle: wave * 0.02 },
-      backFoot: { y: -wave * 3, angle: -wave * 0.06 },
-      frontFoot: { y: wave * 3, angle: wave * 0.06 },
+      body: { y: -5 * lift },
+      backFoot: { x: -7 + lift, y: -3 * lift, angle: -0.04 * lift },
+      frontFoot: { x: 7 - lift, y: -3 * lift, angle: 0.04 * lift },
       eyes: inAir || Math.abs(speed) > 19.5
         ? 'surprise'
-        : 'normal',
+        : 'happy',
     };
   },
 });
 
-const controller = tee.playAnimation(hover);
+const controller = tee.playAnimation(hop);
 const result = await controller.finished;
 console.log(result.reason);</code></pre>
                 <div class="example-preview" id="preview-callback"></div>
@@ -945,46 +956,48 @@ for (const eye of eyes) {
 
         const bounceAnimation = TeeSkinRenderer.animation.define({
             kind: 'keyframes',
-            name: 'bounce',
-            duration: 800,
+            name: 'keyframes',
+            duration: 900,
             loop: true,
             easing: 'ease-in-out',
             tracks: {
                 body: [
-                    { time: 0, y: 0, scale: 1 },
-                    { time: 0.5, y: -12, scale: 1.08 },
-                    { time: 1, y: 0, scale: 1 },
+                    { time: 0, y: 0 },
+                    { time: 0.2, y: 0 },
+                    { time: 0.5, y: -6 },
+                    { time: 0.8, y: 0 },
+                    { time: 1, y: 0 },
                 ],
                 backFoot: [
-                    { time: 0, y: 0, angle: -0.04 },
-                    { time: 0.5, y: -3, angle: 0.04 },
-                    { time: 1, y: 0, angle: -0.04 },
+                    { time: 0, x: -7, y: 0, angle: 0 },
+                    { time: 0.2, x: -7, y: 0, angle: 0 },
+                    { time: 0.5, x: -6, y: -4, angle: -0.05 },
+                    { time: 0.8, x: -7, y: 0, angle: 0 },
+                    { time: 1, x: -7, y: 0, angle: 0 },
                 ],
                 frontFoot: [
-                    { time: 0, y: 0, angle: 0.04 },
-                    { time: 0.5, y: -3, angle: -0.04 },
-                    { time: 1, y: 0, angle: 0.04 },
+                    { time: 0, x: 7, y: 0, angle: 0 },
+                    { time: 0.2, x: 7, y: 0, angle: 0 },
+                    { time: 0.5, x: 6, y: -4, angle: 0.05 },
+                    { time: 0.8, x: 7, y: 0, angle: 0 },
+                    { time: 1, x: 7, y: 0, angle: 0 },
                 ],
-                eyes: [
-                    { time: 0, eyes: 'happy' },
-                    { time: 0.8, eyes: 'blink' },
-                    { time: 1, eyes: 'happy' },
-                ],
+                eyes: [{ time: 0, eyes: 'happy' }],
             },
         });
 
         const callbackAnimation = TeeSkinRenderer.animation.define({
             kind: 'callback',
             name: 'callback',
-            duration: 1200,
+            duration: 900,
             loop: true,
             frame({ progress, speed, inAir }) {
-                const wave = Math.sin(progress * Math.PI * 2);
+                const lift = Math.sin(progress * Math.PI) ** 2;
                 return {
-                    body: { y: wave * 5, angle: wave * 0.02 },
-                    backFoot: { x: -wave * 4, y: -wave * 3, angle: -wave * 0.06 },
-                    frontFoot: { x: wave * 4, y: wave * 3, angle: wave * 0.06 },
-                    eyes: inAir || Math.abs(speed) >= 5000 / 256 ? 'surprise' : 'normal',
+                    body: { y: -5 * lift },
+                    backFoot: { x: -7 + lift, y: -3 * lift, angle: -0.04 * lift },
+                    frontFoot: { x: 7 - lift, y: -3 * lift, angle: 0.04 * lift },
+                    eyes: inAir || Math.abs(speed) >= 5000 / 256 ? 'surprise' : 'happy',
                 };
             },
         });
