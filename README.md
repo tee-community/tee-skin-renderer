@@ -170,6 +170,93 @@ tee.inAir = true; // jump/fall pose
 tee.inAir = false;
 ```
 
+### Custom animations
+
+Custom animations are programmatic and temporarily replace the visible DDNet pose. The built-in `idle`, `walk`, `run`, `sit` and `inAir` animations are fixed and cannot be redefined. When a custom animation stops, the renderer returns to the current built-in pose; its movement phase keeps advancing in the background.
+
+Define a reusable keyframe animation and play it on any tee:
+
+```js
+import { createAsync, defineAnimation } from 'tee-skin-renderer';
+
+const bounce = defineAnimation({
+    kind: 'keyframes',
+    name: 'bounce',
+    duration: 800,
+    loop: true,
+    easing: 'ease-in-out',
+    tracks: {
+        body: [
+            { time: 0, y: 0, scale: 1 },
+            { time: 0.5, y: -12, scale: 1.08 },
+            { time: 1, y: 0, scale: 1 },
+        ],
+        backFoot: [
+            { time: 0, angle: -0.04 },
+            { time: 0.5, y: -3, angle: 0.04 },
+            { time: 1, angle: -0.04 },
+        ],
+        frontFoot: [
+            { time: 0, angle: 0.04 },
+            { time: 0.5, y: -3, angle: -0.04 },
+            { time: 1, angle: 0.04 },
+        ],
+        eyes: [
+            { time: 0, eyes: 'happy' },
+            { time: 0.8, eyes: 'blink' },
+            { time: 1, eyes: 'happy' },
+        ],
+    },
+});
+
+const container = await createAsync({
+    skinUrl: 'https://ddstats.tw/skins/pinky.png',
+});
+const playback = container.tee.playAnimation(bounce);
+
+playback.pause();
+playback.resume();
+playback.seek(400); // milliseconds
+playback.stop();
+
+const result = await playback.finished;
+console.log(result.reason); // "stopped"
+```
+
+For procedural motion, return a pose for each frame. The callback receives animation time plus the tee's current movement state:
+
+```js
+const hover = defineAnimation({
+    kind: 'callback',
+    name: 'hover',
+    duration: 1200,
+    loop: true,
+    frame({ progress, elapsedMs, deltaMs, iteration, speed, inAir, afk }) {
+        const wave = Math.sin(progress * Math.PI * 2);
+
+        return {
+            body: { y: wave * 5, angle: wave * 0.02 },
+            backFoot: { y: -wave * 3, angle: -wave * 0.06 },
+            frontFoot: { y: wave * 3, angle: wave * 0.06 },
+            eyes: inAir || afk || Math.abs(speed) >= 5000 / 256
+                ? 'surprise'
+                : 'normal',
+        };
+    },
+});
+
+container.tee.playAnimation(hover, {
+    playbackRate: 1,
+    startAt: 0,
+});
+```
+
+In a UMD build, define animations with `TeeSkinRenderer.animation.define(...)` or `TeeSkinRenderer.defineAnimation(...)`.
+
+Keyframe `time` is normalized from `0` to `1`. Transform `x`/`y` values use DDNet's 64-unit tee coordinates, `angle` uses turns (`0.25` is 90°), and `scale` is a multiplier where `1` is unchanged. Missing transform fields use neutral values (`0` for position/angle, `1` for scale). Eyes are switched discretely. Supported easing values are `linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out`, or `[x1, y1, x2, y2]` cubic-bezier values.
+
+Definitions accept `loop` and `fill`. The default `fill: 'none'` restores the DDNet pose after completion; `fill: 'forwards'` holds the final custom pose until `stopAnimation()` or another custom animation starts. Playback options can override `loop` and `fill`. Starting another custom animation completes the old controller with reason `replaced`.
+
 ## Skin Format
 
 Supports standard Teeworlds/DDNet skin images with a **2:1 aspect ratio** at any resolution: 256×128, 512×256, 1024×512, 2048×1024, etc.
@@ -246,13 +333,23 @@ tee.skinBitmap;                // ImageBitmap or null
 // Methods
 tee.update();                  // Force re-render
 tee.destroy();                 // Clean up resources
+const playback = tee.playAnimation(animationDefinition, {
+    loop: true,
+    fill: 'none',
+    playbackRate: 1,
+    startAt: 0,
+});
+tee.currentAnimation;          // Active custom controller or null
+tee.stopAnimation();           // Stop custom animation and restore DDNet pose
 tee.renderToCanvas(canvas, {   // Render to canvas element
     size: 128,                 //   output size in px (default: 96)
     eyes: 'happy',             //   override eye type
 });
 ```
 
-`renderToCanvas` uses the renderer's current `speed`, `inAir`, AFK and fat state.
+The playback controller exposes `playState`, `currentTime`, `progress`, `pause()`, `resume()`, `seek()`, `stop()` and a `finished` promise. `finished` always resolves with `{ reason }`, where reason is `completed`, `stopped`, `replaced`, `destroyed` or `error`.
+
+`renderToCanvas` uses the renderer's current built-in or custom animation frame. Its `eyes` option has priority over custom animation eyes.
 
 ### Events
 

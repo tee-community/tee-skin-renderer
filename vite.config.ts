@@ -57,13 +57,17 @@ export default defineConfig({
                     fileName: 'demo.css',
                     source: fs.readFileSync(resolve(__dirname, 'demo/demo.css'), 'utf-8'),
                 });
+
+                this.emitFile({
+                    type: 'asset',
+                    fileName: 'tee-skin-renderer.d.ts',
+                    source: "export * from './src/index';\n",
+                });
             },
         },
         dts({
             include: ['src'],
             outDir: ['dist'],
-            rollupTypes: true,
-            insertTypesEntry: true,
         }),
     ],
 });

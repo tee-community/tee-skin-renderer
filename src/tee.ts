@@ -5,18 +5,19 @@ import {
     DDNET_STATIONARY_SPEED,
     DDNET_TICK_SPEED,
     DOM_ANIMATION_SCALE,
+    TeeAnimationPlaybackController,
+    evaluateCustomAnimation,
     evaluateTeeAnimation,
 } from './animation';
-import type { TeeAnimationFrame } from './animation';
+import type {
+    TeeAnimationController,
+    TeeAnimationDefinition,
+    TeeAnimationFrame,
+    TeeAnimationPlayOptions,
+    TeeEyeType,
+} from './animation';
 
-export type TeeEyeType =
-    | 'normal'
-    | 'angry'
-    | 'pain'
-    | 'happy'
-    | 'dead'
-    | 'surprise'
-    | 'blink';
+export type { TeeEyeType } from './animation';
 
 export interface TeeRendererCustomEventDetail<T> {
     tee: TeeRenderer;
@@ -95,28 +96,27 @@ export class TeeRenderer {
     private _animationDistance: number = 0;
     private _animationFrameId: number | null = null;
     private _animationLastTimestamp: number | null = null;
+    private _customAnimation: TeeAnimationPlaybackController | null = null;
 
     private readonly _debounceUpdateTeeImage: () => void;
     private readonly _animationFrameCallback = (timestamp: number) => {
         this._animationFrameId = null;
-
-        if (Math.abs(this._speed) <= DDNET_STATIONARY_SPEED) {
-            this._animationLastTimestamp = null;
-            return;
-        }
 
         if (this._animationLastTimestamp !== null) {
             const deltaSeconds = Math.min(
                 Math.max((timestamp - this._animationLastTimestamp) / 1000, 0),
                 0.1,
             );
-            this._animationDistance += this._speed * DDNET_TICK_SPEED * deltaSeconds;
-            this._animationDistance %= 200;
+            if (Math.abs(this._speed) > DDNET_STATIONARY_SPEED) {
+                this._animationDistance += this._speed * DDNET_TICK_SPEED * deltaSeconds;
+                this._animationDistance %= 200;
+            }
         }
 
+        this._customAnimation?.advance(timestamp);
         this._animationLastTimestamp = timestamp;
         this.applyAnimationFrame();
-        this._animationFrameId = requestAnimationFrame(this._animationFrameCallback);
+        this.updateAnimationLoop();
     };
 
     constructor(
@@ -248,7 +248,7 @@ export class TeeRenderer {
         }
 
         this._eyes = type;
-        this._container.dataset.eyes = type;
+        this.applyAnimationFrame();
     }
 
     public get speed(): number {
@@ -293,6 +293,7 @@ export class TeeRenderer {
 
         this._fat = value;
         this._container.classList.toggle('tee_fat', value);
+        this.applyAnimationFrame();
     }
 
     public get afk(): boolean {
@@ -331,6 +332,47 @@ export class TeeRenderer {
         }
     }
 
+    public get currentAnimation(): TeeAnimationController | null {
+        return this._customAnimation;
+    }
+
+    public playAnimation(
+        definition: TeeAnimationDefinition,
+        options: TeeAnimationPlayOptions = {},
+    ): TeeAnimationController {
+        this._customAnimation?.replace();
+
+        let controller: TeeAnimationPlaybackController;
+        controller = new TeeAnimationPlaybackController(
+            definition,
+            options,
+            () => {
+                if (this._customAnimation !== controller) return;
+                this.applyAnimationFrame();
+                this.updateAnimationLoop();
+            },
+            (releasedController) => this.releaseCustomAnimation(releasedController),
+        );
+
+        this._customAnimation = controller;
+        this._container.classList.add('tee_custom_animation');
+        this.applyAnimationFrame();
+        this.updateAnimationLoop();
+        return controller;
+    }
+
+    public stopAnimation(): void {
+        this._customAnimation?.stop();
+    }
+
+    private releaseCustomAnimation(controller: TeeAnimationPlaybackController): void {
+        if (this._customAnimation !== controller) return;
+        this._customAnimation = null;
+        this._container.classList.remove('tee_custom_animation');
+        this.applyAnimationFrame();
+        this.updateAnimationLoop();
+    }
+
     private mouseFollowThrottleCallbackFactory(): (e: MouseEvent) => void {
         const fn = throttle((e: MouseEvent) => {
             const containerRect = this._container.getBoundingClientRect();
@@ -349,6 +391,24 @@ export class TeeRenderer {
     }
 
     private getAnimationFrame(): TeeAnimationFrame {
+        if (this._customAnimation !== null) {
+            const controller = this._customAnimation;
+            try {
+                return evaluateCustomAnimation(controller.definition, {
+                    progress: controller.progress,
+                    elapsedMs: controller.currentTime,
+                    deltaMs: controller.deltaMs,
+                    iteration: controller.iteration,
+                    speed: this._speed,
+                    inAir: this._inAir,
+                    afk: this._afk,
+                });
+            } catch (error) {
+                console.error('TeeRenderer: custom animation callback failed', error);
+                controller.fail(error);
+            }
+        }
+
         return evaluateTeeAnimation({
             speed: this._speed,
             inAir: this._inAir,
@@ -365,18 +425,27 @@ export class TeeRenderer {
         this.setAnimationStyle('--tee-body-x', frame.body.x * DOM_ANIMATION_SCALE);
         this.setAnimationStyle('--tee-body-y', frame.body.y * DOM_ANIMATION_SCALE);
         this.setAnimationStyle('--tee-body-angle', frame.body.angle * Math.PI * 2, 'rad');
+        this.setAnimationStyle(
+            '--tee-body-scale',
+            (frame.body.scale ?? 1) * (this._fat ? Atlas.FAT_BODY_SCALE : 1),
+            '',
+        );
 
         this.setAnimationStyle('--tee-back-foot-x', frame.backFoot.x * DOM_ANIMATION_SCALE);
         this.setAnimationStyle('--tee-back-foot-y', frame.backFoot.y * DOM_ANIMATION_SCALE);
         this.setAnimationStyle('--tee-back-foot-angle', frame.backFoot.angle * Math.PI * 2, 'rad');
+        this.setAnimationStyle('--tee-back-foot-scale', (frame.backFoot.scale ?? 1) * Atlas.FOOT_SCALE_X, '');
 
         this.setAnimationStyle('--tee-front-foot-x', frame.frontFoot.x * DOM_ANIMATION_SCALE);
         this.setAnimationStyle('--tee-front-foot-y', frame.frontFoot.y * DOM_ANIMATION_SCALE);
         this.setAnimationStyle('--tee-front-foot-angle', frame.frontFoot.angle * Math.PI * 2, 'rad');
+        this.setAnimationStyle('--tee-front-foot-scale', (frame.frontFoot.scale ?? 1) * Atlas.FOOT_SCALE_X, '');
+        this._container.dataset.eyes = frame.eyes ?? this._eyes;
     }
 
     private updateAnimationLoop() {
-        const shouldAnimate = Math.abs(this._speed) > DDNET_STATIONARY_SPEED;
+        const shouldAnimate = Math.abs(this._speed) > DDNET_STATIONARY_SPEED
+            || this._customAnimation?.playState === 'running';
 
         if (!shouldAnimate) {
             if (this._animationFrameId !== null) {
@@ -550,10 +619,10 @@ export class TeeRenderer {
         }
 
         const size = options?.size ?? 96;
-        const eyeType = options?.eyes ?? this._eyes;
         const spriteScale = size / Atlas.TEE_BASE_SIZE;
         const animationScale = size / 64;
         const animationFrame = this.getAnimationFrame();
+        const eyeType = options?.eyes ?? animationFrame.eyes ?? this._eyes;
 
         const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
         if (!ctx) return;
@@ -635,9 +704,26 @@ export class TeeRenderer {
             ctx.restore();
         };
 
-        const bodySize = Atlas.SPRITE_BODY.w * spriteScale * (this._fat ? Atlas.FAT_BODY_SCALE : 1);
-        const footW = Atlas.SPRITE_FOOT.w * Atlas.FOOT_SCALE_X * spriteScale;
-        const footH = Atlas.SPRITE_FOOT.h * Atlas.FOOT_SCALE_Y * spriteScale;
+        const bodySize = Atlas.SPRITE_BODY.w
+            * spriteScale
+            * (this._fat ? Atlas.FAT_BODY_SCALE : 1)
+            * (animationFrame.body.scale ?? 1);
+        const backFootW = Atlas.SPRITE_FOOT.w
+            * Atlas.FOOT_SCALE_X
+            * spriteScale
+            * (animationFrame.backFoot.scale ?? 1);
+        const backFootH = Atlas.SPRITE_FOOT.h
+            * Atlas.FOOT_SCALE_Y
+            * spriteScale
+            * (animationFrame.backFoot.scale ?? 1);
+        const frontFootW = Atlas.SPRITE_FOOT.w
+            * Atlas.FOOT_SCALE_X
+            * spriteScale
+            * (animationFrame.frontFoot.scale ?? 1);
+        const frontFootH = Atlas.SPRITE_FOOT.h
+            * Atlas.FOOT_SCALE_Y
+            * spriteScale
+            * (animationFrame.frontFoot.scale ?? 1);
 
         const backFootPos = {
             x: centerX + animationFrame.backFoot.x * animationScale,
@@ -671,8 +757,8 @@ export class TeeRenderer {
             Atlas.SPRITE_FOOT_OUTLINE,
             backFootPos.x,
             backFootPos.y,
-            footW,
-            footH,
+            backFootW,
+            backFootH,
             animationFrame.backFoot.angle * Math.PI * 2,
         );
         // 1: body outline
@@ -689,8 +775,8 @@ export class TeeRenderer {
             Atlas.SPRITE_FOOT_OUTLINE,
             frontFootPos.x,
             frontFootPos.y,
-            footW,
-            footH,
+            frontFootW,
+            frontFootH,
             animationFrame.frontFoot.angle * Math.PI * 2,
         );
         // 3: back foot fill
@@ -698,8 +784,8 @@ export class TeeRenderer {
             Atlas.SPRITE_FOOT,
             backFootPos.x,
             backFootPos.y,
-            footW,
-            footH,
+            backFootW,
+            backFootH,
             animationFrame.backFoot.angle * Math.PI * 2,
         );
         // 4: body fill
@@ -719,14 +805,15 @@ export class TeeRenderer {
             Atlas.SPRITE_FOOT,
             frontFootPos.x,
             frontFootPos.y,
-            footW,
-            footH,
+            frontFootW,
+            frontFootH,
             animationFrame.frontFoot.angle * Math.PI * 2,
         );
     }
 
     public destroy() {
         this.followMouse = false;
+        this._customAnimation?.destroy();
 
         if (this._animationFrameId !== null) {
             cancelAnimationFrame(this._animationFrameId);
@@ -753,18 +840,21 @@ export class TeeRenderer {
             '--tee-body-x',
             '--tee-body-y',
             '--tee-body-angle',
+            '--tee-body-scale',
             '--tee-back-foot-x',
             '--tee-back-foot-y',
             '--tee-back-foot-angle',
+            '--tee-back-foot-scale',
             '--tee-front-foot-x',
             '--tee-front-foot-y',
             '--tee-front-foot-angle',
+            '--tee-front-foot-scale',
         ]) {
             this._container.style.removeProperty(property);
         }
 
         this.setSkinVariableValue(null);
-        this._container.classList.remove('tee_initialized', 'tee_rendered');
+        this._container.classList.remove('tee_initialized', 'tee_rendered', 'tee_custom_animation');
     }
 
     private loadSkin(url: string, update: boolean): Promise<void> {

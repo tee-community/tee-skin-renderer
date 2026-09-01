@@ -7,9 +7,11 @@
     --tee-back-foot-x: -10.5em;
     --tee-back-foot-y: 15em;
     --tee-back-foot-angle: 0rad;
+    --tee-back-foot-scale: 1.5;
     --tee-front-foot-x: 10.5em;
     --tee-front-foot-y: 15em;
     --tee-front-foot-angle: 0rad;
+    --tee-front-foot-scale: 1.5;
     --tee-eye-follow-x: 0px;
     --tee-eye-follow-y: 0px;
 
@@ -168,14 +170,14 @@
     transform:
         translate(calc(-50% + var(--tee-back-foot-x)), calc(-50% + var(--tee-back-foot-y)))
         rotate(var(--tee-back-foot-angle))
-        scale(1.5);
+        scale(var(--tee-back-foot-scale));
 }
 
 .tee__foot_front {
     transform:
         translate(calc(-50% + var(--tee-front-foot-x)), calc(-50% + var(--tee-front-foot-y)))
         rotate(var(--tee-front-foot-angle))
-        scale(1.5);
+        scale(var(--tee-front-foot-scale));
 }
 
 /*       */
@@ -240,11 +242,11 @@
 /* AFK */
 /*     */
 
-.tee_afk .tee__eyes::before {
+.tee_afk:not(.tee_custom_animation) .tee__eyes::before {
     transform: scale(1.2, 0.45);
 }
 
-.tee_afk .tee__eyes::after {
+.tee_afk:not(.tee_custom_animation) .tee__eyes::after {
     transform: scale(-1.2, 0.45);
 }
 

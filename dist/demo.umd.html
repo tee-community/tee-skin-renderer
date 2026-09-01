@@ -311,7 +311,8 @@
             flex-wrap: wrap;
         }
 
-        .animation-btn {
+        .animation-btn,
+        .custom-animation-btn {
             flex: 1;
             min-width: 64px;
             padding: 9px 8px;
@@ -325,14 +326,21 @@
             text-align: center;
         }
 
-        .animation-btn:hover {
+        .animation-btn:hover,
+        .custom-animation-btn:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.08);
         }
 
-        .animation-btn.active {
+        .animation-btn.active,
+        .custom-animation-btn.active {
             background: rgba(99, 102, 241, 0.12);
             border-color: rgba(99, 102, 241, 0.4);
             color: #a5b4fc;
+        }
+
+        .custom-animation-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
         }
 
         @media (max-width: 700px) {
@@ -629,6 +637,19 @@
             </div>
 
             <div class="field">
+                <div class="speed-control-header">
+                    <span class="panel-title">Custom API</span>
+                    <output id="customAnimationStatus" class="speed-readout" aria-live="polite">Built-in</output>
+                </div>
+                <div class="animation-btns">
+                    <button class="custom-animation-btn" data-custom-animation="keyframes">Keyframes</button>
+                    <button class="custom-animation-btn" data-custom-animation="callback">Callback</button>
+                    <button id="customAnimationPause" class="custom-animation-btn" disabled>Pause</button>
+                    <button id="customAnimationStop" class="custom-animation-btn" disabled>Stop</button>
+                </div>
+            </div>
+
+            <div class="field">
                 <span class="panel-title">Options</span>
                 <div class="toggle-row">
                     <label class="toggle" id="toggleFat">
@@ -722,6 +743,69 @@ tee.speed     = -20; // reverse leg animation
 tee.inAir     = false;
 tee.fat       = true;</code></pre>
                 <div class="example-preview" id="preview-dynamic"></div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div class="example-header">
+                <span class="example-label">Custom Keyframes</span>
+                <span class="example-desc">Animate body, feet and eyes with normalized keyframes</span>
+            </div>
+            <div class="example-content">
+                <pre class="code"><code>const bounce = TeeSkinRenderer.animation.define({
+  kind: 'keyframes',
+  duration: 800,
+  loop: true,
+  easing: 'ease-in-out',
+  tracks: {
+    body: [
+      { time: 0,   y: 0 },
+      { time: 0.5, y: -12, scale: 1.08 },
+      { time: 1,   y: 0 },
+    ],
+    eyes: [
+      { time: 0,   eyes: 'happy' },
+      { time: 0.8, eyes: 'blink' },
+    ],
+  },
+});
+
+const controller = tee.playAnimation(bounce);
+controller.pause();
+controller.resume();
+controller.seek(400);
+controller.stop();</code></pre>
+                <div class="example-preview" id="preview-keyframes"></div>
+            </div>
+        </div>
+
+        <div class="example">
+            <div class="example-header">
+                <span class="example-label">Procedural Callback</span>
+                <span class="example-desc">Calculate each pose from time and renderer state</span>
+            </div>
+            <div class="example-content">
+                <pre class="code"><code>const hover = TeeSkinRenderer.animation.define({
+  kind: 'callback',
+  duration: 1200,
+  loop: true,
+  frame({ progress, speed, inAir }) {
+    const wave = Math.sin(progress * Math.PI * 2);
+    return {
+      body: { y: wave * 5, angle: wave * 0.02 },
+      backFoot: { y: -wave * 3, angle: -wave * 0.06 },
+      frontFoot: { y: wave * 3, angle: wave * 0.06 },
+      eyes: inAir || Math.abs(speed) > 19.5
+        ? 'surprise'
+        : 'normal',
+    };
+  },
+});
+
+const controller = tee.playAnimation(hover);
+const result = await controller.finished;
+console.log(result.reason);</code></pre>
+                <div class="example-preview" id="preview-callback"></div>
             </div>
         </div>
 
@@ -855,6 +939,57 @@ for (const eye of eyes) {
         const elColorFeetPreview = document.getElementById('colorFeetPreview');
         const elSpeedRange = document.getElementById('speedRange');
         const elSpeedReadout = document.getElementById('speedReadout');
+        const elCustomAnimationStatus = document.getElementById('customAnimationStatus');
+        const elCustomAnimationPause = document.getElementById('customAnimationPause');
+        const elCustomAnimationStop = document.getElementById('customAnimationStop');
+
+        const bounceAnimation = TeeSkinRenderer.animation.define({
+            kind: 'keyframes',
+            name: 'bounce',
+            duration: 800,
+            loop: true,
+            easing: 'ease-in-out',
+            tracks: {
+                body: [
+                    { time: 0, y: 0, scale: 1 },
+                    { time: 0.5, y: -12, scale: 1.08 },
+                    { time: 1, y: 0, scale: 1 },
+                ],
+                backFoot: [
+                    { time: 0, y: 0, angle: -0.04 },
+                    { time: 0.5, y: -3, angle: 0.04 },
+                    { time: 1, y: 0, angle: -0.04 },
+                ],
+                frontFoot: [
+                    { time: 0, y: 0, angle: 0.04 },
+                    { time: 0.5, y: -3, angle: -0.04 },
+                    { time: 1, y: 0, angle: 0.04 },
+                ],
+                eyes: [
+                    { time: 0, eyes: 'happy' },
+                    { time: 0.8, eyes: 'blink' },
+                    { time: 1, eyes: 'happy' },
+                ],
+            },
+        });
+
+        const callbackAnimation = TeeSkinRenderer.animation.define({
+            kind: 'callback',
+            name: 'callback',
+            duration: 1200,
+            loop: true,
+            frame({ progress, speed, inAir }) {
+                const wave = Math.sin(progress * Math.PI * 2);
+                return {
+                    body: { y: wave * 5, angle: wave * 0.02 },
+                    backFoot: { x: -wave * 4, y: -wave * 3, angle: -wave * 0.06 },
+                    frontFoot: { x: wave * 4, y: wave * 3, angle: wave * 0.06 },
+                    eyes: inAir || Math.abs(speed) >= 5000 / 256 ? 'surprise' : 'normal',
+                };
+            },
+        });
+
+        let customAnimationController = null;
 
         const presets = [
             { skin: 'pinky.png', body: 5498880, feet: 3079936, custom: true },
@@ -970,6 +1105,7 @@ for (const eye of eyes) {
             const inAir = elTee.tee.inAir;
             const roundedSpeed = Math.round(speed);
             const sign = roundedSpeed > 0 ? '+' : '';
+            const hasCustomAnimation = elTee.tee.currentAnimation !== null;
 
             elSpeedRange.value = String(roundedSpeed);
             elSpeedReadout.textContent = `${sign}${roundedSpeed} u/t · ${getAnimationLabel(speed, inAir)}`;
@@ -977,11 +1113,60 @@ for (const eye of eyes) {
             document.querySelectorAll('.animation-btn').forEach(btn => {
                 const buttonSpeed = Number(btn.dataset.speed);
                 const buttonInAir = btn.dataset.inAir === 'true';
-                btn.classList.toggle('active', buttonSpeed === roundedSpeed && buttonInAir === inAir);
+                btn.classList.toggle(
+                    'active',
+                    !hasCustomAnimation && buttonSpeed === roundedSpeed && buttonInAir === inAir,
+                );
             });
         }
 
+        function updateCustomAnimationControls() {
+            const controller = elTee.tee.currentAnimation;
+            const state = controller?.playState;
+
+            elCustomAnimationPause.disabled = controller === null || state === 'finished';
+            elCustomAnimationStop.disabled = controller === null;
+            elCustomAnimationPause.textContent = state === 'paused' ? 'Resume' : 'Pause';
+
+            document.querySelectorAll('[data-custom-animation]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.customAnimation === controller?.definition.name);
+            });
+
+            if (controller === null) {
+                elCustomAnimationStatus.textContent = 'Built-in';
+            } else {
+                const name = controller.definition.name ?? 'Custom';
+                elCustomAnimationStatus.textContent = `${name} · ${state}`;
+            }
+
+            updateAnimationControls();
+        }
+
+        function playCustomAnimation(definition) {
+            const controller = elTee.tee.playAnimation(definition);
+            customAnimationController = controller;
+            updateCustomAnimationControls();
+
+            controller.finished.then(result => {
+                if (customAnimationController !== controller) return;
+                if (elTee.tee.currentAnimation === null) {
+                    customAnimationController = null;
+                    elCustomAnimationStatus.textContent = `Built-in · ${result.reason}`;
+                }
+                updateCustomAnimationControls();
+            });
+        }
+
+        function stopCustomAnimation() {
+            elTee.tee.stopAnimation();
+            customAnimationController = null;
+            updateCustomAnimationControls();
+        }
+
         function setAnimation(speed, inAir = false) {
+            if (elTee.tee.currentAnimation !== null) {
+                stopCustomAnimation();
+            }
             elTee.tee.inAir = inAir;
             elTee.tee.speed = speed;
             updateAnimationControls();
@@ -997,10 +1182,32 @@ for (const eye of eyes) {
             });
         });
 
+        document.querySelectorAll('[data-custom-animation]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const definition = btn.dataset.customAnimation === 'keyframes'
+                    ? bounceAnimation
+                    : callbackAnimation;
+                playCustomAnimation(definition);
+            });
+        });
+
+        elCustomAnimationPause.addEventListener('click', () => {
+            const controller = elTee.tee.currentAnimation;
+            if (controller === null) return;
+            if (controller.playState === 'paused') {
+                controller.resume();
+            } else {
+                controller.pause();
+            }
+            updateCustomAnimationControls();
+        });
+
+        elCustomAnimationStop.addEventListener('click', stopCustomAnimation);
+
         if (elTee.tee) {
-            updateAnimationControls();
+            updateCustomAnimationControls();
         } else {
-            document.addEventListener('DOMContentLoaded', updateAnimationControls, { once: true });
+            document.addEventListener('DOMContentLoaded', updateCustomAnimationControls, { once: true });
         }
 
         // Fat
@@ -1061,7 +1268,26 @@ for (const eye of eyes) {
             }, 800);
         });
 
-        // 4. Events
+        // 4. Custom keyframes
+        TeeSkinRenderer.createAsync({
+            skinUrl: SKIN,
+            colorBody: 5498880,
+            colorFeet: 3079936,
+        }).then(c => {
+            document.getElementById('preview-keyframes').appendChild(c);
+            c.tee.playAnimation(bounceAnimation);
+        });
+
+        // 5. Procedural callback
+        TeeSkinRenderer.createAsync({
+            skinUrl: SKIN,
+            speed: 20,
+        }).then(c => {
+            document.getElementById('preview-callback').appendChild(c);
+            c.tee.playAnimation(callbackAnimation);
+        });
+
+        // 6. Events
         TeeSkinRenderer.createAsync({
             skinUrl: SKIN,
             colorBody: 53063,
@@ -1086,7 +1312,7 @@ for (const eye of eyes) {
             document.getElementById('preview-events').insertBefore(c, log);
         });
 
-        // 5. Render to canvas
+        // 7. Render to canvas
         TeeSkinRenderer.createAsync({
             skinUrl: SKIN,
             colorBody: 5498880,
@@ -1103,7 +1329,7 @@ for (const eye of eyes) {
             }, { once: true });
         });
 
-        // 6. Sizing
+        // 8. Sizing
         (async function() {
             const sizingPreview = document.getElementById('preview-sizing');
             const sizes = [
@@ -1127,7 +1353,7 @@ for (const eye of eyes) {
             }
         })();
 
-        // 7. Color utilities
+        // 9. Color utilities
         (function() {
             const { color } = TeeSkinRenderer;
             const preview = document.getElementById('preview-color');
@@ -1149,7 +1375,7 @@ for (const eye of eyes) {
             preview.appendChild(sw2);
         })();
 
-        // 8. Eye gallery
+        // 10. Eye gallery
         (async function() {
             const gallery = document.getElementById('preview-gallery');
             const eyes = ['normal', 'happy', 'angry', 'pain', 'surprise', 'dead', 'blink'];
